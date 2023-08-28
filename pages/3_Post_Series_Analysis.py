@@ -18,7 +18,7 @@ import pandas as pd
 st.title("Post Series Analysis")
 
 
-with open(f'./CCT-Online-Finals-1/2578928_state.json', 'r') as json_file:
+with open(f'../CCT-Online-Finals-1/2578928_state.json', 'r') as json_file:
     result = json.load(json_file)
 
 date = result["startedAt"].split("T")[0]
