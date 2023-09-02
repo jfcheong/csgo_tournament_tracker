@@ -12,15 +12,19 @@ import streamlit_highcharts as hct
 import json
 from datetime import date
 import pandas as pd
+import numpy as np
+from collections.abc import Iterable
+from highcharts import Highchart
+
 
 
 st.title("Post Series Analysis")
 
 
-with open(f'../CCT-Online-Finals-1/2578928_state.json', 'r') as json_file:
+with open(f'../CCT-Online-Finals-1/2579089_state.json', 'r') as json_file:
     result = json.load(json_file)
 
-date = result["startedAt"].split("T")[0]
+match_date = result["startedAt"].split("T")[0]
 format =result["format"]
 
 teams_df = pd.DataFrame(result["teams"])
@@ -37,11 +41,17 @@ teams_df = teams_df[['name', 'score', 'won', 'kills',
        'weaponTeamkills', 'selfkills',
        'deaths','headshots', 'teamHeadshots', "beginDefuseWithKit", "beginDefuseWithoutKit","defuseBomb","explodeBomb","plantBomb"]]
 
+
 winning_team = teams_df[teams_df['score'] == 1]['name'].tolist()[0]
 losing_team = teams_df[teams_df['score'] == 0]['name'].tolist()[0]
 
-st.subheader(f"Date of Match: {date}")
+st.write(winning_team)
+st.write(losing_team)
+
+st.subheader(f"Date of Match: {match_date}")
 st.write(f"Match format: {format}")
+
+#add part to compute map score instead of hardcoding mapscore
 
 components.html(
     f"""
@@ -94,7 +104,7 @@ game_player_stats['ADR'] = player_adr
 game_player_stats['KDA Ratio'] = (game_player_stats['kills'] + game_player_stats['killAssistsGiven']) / game_player_stats['deaths']
 game_player_stats.reset_index(inplace=True)
 
-team1_df, team2_df = game_player_stats[game_player_stats['teams.name'] == "ECSTATIC"], game_player_stats[game_player_stats['teams.name'] == "forZe"]
+team1_df, team2_df = game_player_stats[game_player_stats['teams.name'] == winning_team], game_player_stats[game_player_stats['teams.name'] == losing_team]
 team1_df = team1_df.sort_values(['ADR'], ascending=[False])
 team2_df = team2_df.sort_values(['ADR'], ascending=[False])
 
@@ -113,13 +123,6 @@ with col2:
 
 st.header("Economy Winrate")
 
-
-st.header("Player Statistics")
-st.subheader(f"Team 1 - {winning_team}")
-st.table(team1_df)
-st.subheader(f"Team 2 - {losing_team}")
-
-st.table(team2_df)
 
 #building ADR charts
 team1_players = list(team1_df["name"])
@@ -187,8 +190,8 @@ team2_chart={ 'accessibility': { 'announceNewData': { 'enabled': True}},
   }
 
 #trying side by side chart
-from collections.abc import Iterable
-from highcharts import Highchart
+
+
 combined_chart={ 'accessibility': { 'announceNewData': { 'enabled': True}},
   'chart': {'type': 'bar'},
   'legend': {'enabled': True},
@@ -222,7 +225,6 @@ combined_chart={ 'accessibility': { 'announceNewData': { 'enabled': True}},
     
   }
 
-from highcharts import Highchart
 H = Highchart(height=400)
 
 options = {
@@ -279,5 +281,56 @@ H.add_data_set(team2_ADR, 'bar', f'{losing_team}')
 
 st.header("Team Comparison")
 components.html(H.htmlcontent,height=400)
-hct.streamlit_highcharts(combined_chart,400)
+# hct.streamlit_highcharts(combined_chart,400)
 
+st.header("Player Statistics")
+
+games_df = pd.DataFrame(result["games"])
+maps = list(games_df["map"])
+list_of_maps = ["All Maps"]
+for i in range(len(maps)):
+    map = (maps[i]['name']).capitalize()
+    list_of_maps.append(map)
+
+player_stats_per_round = pd.json_normalize(data=result["games"],
+                               record_path=["segments", "teams", "players"],
+                               meta=["sequenceNumber",["segments", "id"], ["segments","teams","name"]],meta_prefix="game_")
+
+player_stats_per_round = player_stats_per_round.rename(columns={"game_sequenceNumber":"game", "game_segments.id":"round",'game_segments.teams.name':"teamName"})
+player_stats_per_round = player_stats_per_round[["game", "round", "name","alive", "currentHealth", "currentArmor", "kills", "deaths", "damageDealt", "damageTaken"]]
+
+player_stats_per_round = player_stats_per_round.drop(['round', 'alive','currentHealth','currentArmor','damageTaken'], axis=1)
+
+
+team_stats_per_round = pd.json_normalize(data=result["games"],
+                               record_path=["segments", "teams"],
+                               meta=["sequenceNumber",["segments", "id"]],meta_prefix="game_")
+
+team_stats_per_round = team_stats_per_round[["game_sequenceNumber", "game_segments.id", "name", "side", "won", "kills","damageDealt", "damageTaken"]]
+
+map_tabs = st.tabs(list_of_maps)
+for i in range(len(map_tabs)):
+    with map_tabs[i]:
+        if i==0:
+            st.subheader(f"Team 1 - {winning_team}")
+            st.table(team1_df)
+            st.subheader(f"Team 2 - {losing_team}")
+            st.table(team2_df)
+        else:
+            map_stats = team_stats_per_round[(team_stats_per_round.game_sequenceNumber==i) & ((team_stats_per_round.won==True))]
+            map_score = map_stats['name'].value_counts()
+            st.write(winning_team , 'won', map_score[winning_team])
+            st.write(losing_team , 'lost', map_score[losing_team])
+            
+            map_df = player_stats_per_round[(player_stats_per_round.game == i)]
+            map_df = map_df.groupby(['name']).sum()
+            map_df.reset_index(inplace=True)
+            map_df['team'] = np.where(map_df['name'].isin(team1_players), winning_team,losing_team)
+            map_team1_df, map_team2_df = map_df[map_df['team'] == winning_team], map_df[map_df['team'] == losing_team]
+            st.subheader(f"Team 1 - {winning_team}")
+            map_team1_df = map_team1_df.sort_values(['kills'], ascending=[False]).drop(["game","team"],axis=1)
+    
+            st.table(map_team1_df)
+            st.subheader(f"Team 2 - {losing_team}")
+            map_team2_df = map_team2_df.sort_values(['kills'], ascending=[False]).drop(["game","team"],axis=1)
+            st.table(map_team2_df)
