@@ -16,15 +16,28 @@ import numpy as np
 from collections.abc import Iterable
 from highcharts import Highchart
 
+@st.cache_data  # 👈 Add the caching decorator
+def load_data():
+    with open('../CCT-Online-Finals-1/2579089_events.jsonl', 'r') as jsonl_file:
+        json_list = list(jsonl_file)
+    for line_item in json_list:
+        line_item = json.loads(line_item)
+        for event in line_item["events"]:
+            event_name = event["type"]
+            if event_name == "tournament-ended-series":
+                st.write(event_name)
+                result = event["seriesState"]
+                break
 
+    return result
 
 st.title("Post Series Analysis")
 
 
-with open(f'../CCT-Online-Finals-1/2579089_state.json', 'r') as json_file:
-    result = json.load(json_file)
-
+result = load_data()
 match_date = result["startedAt"].split("T")[0]
+
+
 format =result["format"]
 
 teams_df = pd.DataFrame(result["teams"])
@@ -42,29 +55,29 @@ teams_df = teams_df[['name', 'score', 'won', 'kills',
        'deaths','headshots', 'teamHeadshots', "beginDefuseWithKit", "beginDefuseWithoutKit","defuseBomb","explodeBomb","plantBomb"]]
 
 
-winning_team = teams_df[teams_df['score'] == 1]['name'].tolist()[0]
+winning_team = teams_df[teams_df['score'] == 2]['name'].tolist()[0]
 losing_team = teams_df[teams_df['score'] == 0]['name'].tolist()[0]
 
-st.write(winning_team)
-st.write(losing_team)
 
 st.subheader(f"Date of Match: {match_date}")
 st.write(f"Match format: {format}")
 
 #add part to compute map score instead of hardcoding mapscore
+forze_url = "https://preview.redd.it/new-forze-logo-v0-x31u5t3sg8ba1.png?width=600&format=png&auto=webp&s=041b6912e65d06e150219f63f79dc05b911e9c04"
+ecstatic_url = "https://img-cdn.hltv.org/teamlogo/Ox1eFAB6o8VM6jwgPbQuks.svg?ixlib=java-2.1.0&s=66680f6d946ff4a93bc311f3bbab8d9e"
 
 components.html(
     f"""
-    <div style="height:200px; background-color:#31333F;display: grid;column-gap: 30px;grid-template-columns: auto auto auto;padding: 10px;">
+    <div style="height:200px; background-color:#F0F2F6;display: grid;column-gap: 30px;grid-template-columns: auto auto auto;padding: 10px;">
         <div style="text-align: right;">
-            <h3 style="color:white;font-family:Source Sans Pro;">{winning_team}</h3>
-            <img style="height:50px;" src="https://img-cdn.hltv.org/teamlogo/Ox1eFAB6o8VM6jwgPbQuks.svg?ixlib=java-2.1.0&s=66680f6d946ff4a93bc311f3bbab8d9e" />
+            <h3 style="color:black;font-family:Source Sans Pro;">{winning_team}</h3>
+            <img style="height:50px;" src="{forze_url}" />
         </div>
         
-        <h3 style="color:white;font-size:40px;;text-align: center; ">2 - 0</h3>
+        <h3 style="color:black;font-size:40px;;text-align: center; ">2 - 0</h3>
         <div style="text-align: left;">
-            <h3 style="color:white;">{losing_team}</h3>
-            <img style="height:50px;" src="https://preview.redd.it/new-forze-logo-v0-x31u5t3sg8ba1.png?width=600&format=png&auto=webp&s=041b6912e65d06e150219f63f79dc05b911e9c04" />
+            <h3 style="color:black;">{losing_team}</h3>
+            <img style="height:50px;" src="{ecstatic_url}" />
         </div>
     </div>
 	
@@ -103,7 +116,6 @@ game_player_stats['ADR'] = player_adr
 
 game_player_stats['KDA Ratio'] = (game_player_stats['kills'] + game_player_stats['killAssistsGiven']) / game_player_stats['deaths']
 game_player_stats.reset_index(inplace=True)
-
 team1_df, team2_df = game_player_stats[game_player_stats['teams.name'] == winning_team], game_player_stats[game_player_stats['teams.name'] == losing_team]
 team1_df = team1_df.sort_values(['ADR'], ascending=[False])
 team2_df = team2_df.sort_values(['ADR'], ascending=[False])

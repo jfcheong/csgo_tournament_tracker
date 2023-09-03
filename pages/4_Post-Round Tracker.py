@@ -19,132 +19,20 @@ import numpy as np
 from highcharts import Highchart
 from copy import deepcopy
 
+@st.cache_data  # 👈 Add the caching decorator
+def load_data():
+    with open('../CCT-Online-Finals-1/2579089_events.jsonl', 'r') as jsonl_file:
+        json_list = list(jsonl_file)
+    return json_list
 
-# Load events jsonl file
-with open('../CCT-Online-Finals-1/2579089_events.jsonl', 'r') as jsonl_file:
-    json_list = list(jsonl_file)
 
-# Load state json file
-with open(f'../CCT-Online-Finals-1/2578928_state.json', 'r') as json_file:
-    state = json.load(json_file)
+full_events = load_data()
 
-date = state["startedAt"].split("T")[0]
-format =state["format"]
 
-# Data Engineering
-def get_player_state(event, return_df=True):
-    """ Returns df of players' most updated state """
 
-    # All weapons lists
-    primary = ['mag7','nova','xm1014','mac10','mp9','ak47','aug','famas','galilar','m4a1','m4a1_silencer','ssg08','awp','m249','negev','scar20','g3sg1','sg553','ppbizon','mp7','ump45','p90','mp5_silencer','sawedoff']
-    secondary = ['hkp2000','cz75a','deagle','fiveseven','glock','p250','tec9','usp_silencer', 'elite', 'revolver']
-    melee = ['knife','knife_t']
-
-    players = []
-    event = deepcopy(event)
-    teams = event["seriesState"]["games"][-1]["teams"]
-    for team in teams:
-        for _player in team["players"]:
-            player = {}
-            player["team"] = team["name"]
-
-            # Flatten objectives
-            objectives = {}
-            for objective in _player["objectives"]:
-                objectives[objective["id"]] = objective["completionCount"]
-
-            # Flatten loadout
-            player_loadout = {"loadout":
-                              {
-                                  "primary":None,
-                                  "secondary":None,
-                                  "melee":None,
-                                  "helm":None,
-                                  "kevlarVest":None,
-                                  "bomb":None,
-                                  "defuser":None,
-                                  "decoy":None,
-                                  "flashbang":None,
-                                  "hegrenade":None,
-                                  "incgrenade":None,
-                                  "molotov":None,
-                                  "smokeGrenade":None,
-                                  "taser":None
-                                  }
-                              }
-
-            for item in _player["items"]:
-                item_id = item["id"]
-                if item_id in primary:
-                    player_loadout["loadout"]["primary"] = item_id
-                elif item_id in secondary:
-                    player_loadout["loadout"]["secondary"] = item_id
-                elif item_id in melee:
-                    player_loadout["loadout"]["melee"] = item_id
-                else:
-                    player_loadout["loadout"][item_id] = item_id
-
-            # Remove useless fields
-            redundant_fields = ["statePath", "character", "items", "externalLinks", "objectives"]
-            for field in redundant_fields:
-                _player.pop(field)
-
-            player.update(_player)
-            player.update(objectives)
-            player.update(player_loadout)
-            players.append(player)
-
-    players = sorted(players, key=lambda x: (x["team"], x["name"]))
-    if return_df:
-        return pd.json_normalize(players)
-    else:
-        return players
-
-def get_player_health_armor(event):
-    """ Returns df of players' most updated health and armor values """
-
-    required_fields = ["currentHealth", "currentArmor"]
-    players = get_player_state(event).filter(items=(["team", "name"] + required_fields))
-    return players
-
-def get_player_economy(event):
-    required_fields = ["money", "inventoryValue", "netWorth"]
-    players = get_player_state(event).filter(items=(["team", "name"] + required_fields))
-    return players
-
-def get_player_kdao(event):
-    required_fields = ["kills", "killAssistsGiven", "deaths", "beginDefuseWithKit", "beginDefuseWithoutKit", "defuseBomb", "explodeBomb", "plantBomb"]
-    players = get_player_state(event).filter(items=(["team", "name"] + required_fields)).fillna(0)
-    for col in ["beginDefuseWithKit", "beginDefuseWithoutKit", "defuseBomb", "explodeBomb", "plantBomb"]:
-        players[col] = players[col].astype('Int64')
-    return players
-
-def get_loadout(event):
-    required_fields = ["loadout.*"]
-    players = get_player_state(event).filter(regex="|".join(["^team$", "^name$"] + required_fields))
-    return players
-
-event = json.loads(json_list[2443])["events"][-1]
-# display(get_player_health_armor(event))
-# display(get_player_economy(event))
-# display(get_player_kdao(event))
-# display(get_loadout(event))
-
-pha = get_player_health_armor(event)
-kda = get_player_kdao(event)
-
-# Dummy Variables
-team1='TeamA'
-team2='TeamB'
-round_num=2
-team1player1='Player Tom'
-team2player1='Player Jerry'
-team2player2='Player Bugs Bunny'
-event_action1='headshot'
-event_action2='picked up'
-item1='boom boom grenade'
-
-#Sek Ee's code
+def get_series_start_date(event):
+    series_start = event["seriesState"]["startedAt"].split("T")[0]
+    return series_start
 
 def get_team_info(event, granularity):
     required_fields = ["name", "side", "score", "kills", "objectives"]
@@ -177,6 +65,7 @@ def get_team_info(event, granularity):
             if is_float_dtype(games_info[col]):
                 games_info[col] = games_info[col].astype('Int64')
         return games_info
+
     elif granularity == "round":
         games = event["seriesState"]["games"]
         games_info = []
@@ -200,8 +89,9 @@ def get_team_info(event, granularity):
                         "map": map_name,
                         "round_seq": round_seq,
                         "name": team["name"],
-                        "won": team["won"],
                         "side": team["side"],
+                        "won": team["won"],
+                        "win_type": team["winType"],
                         "kills": team["kills"],
                         "objectives": objectives
                     }
@@ -214,101 +104,227 @@ def get_team_info(event, granularity):
     else:
         return None
 
-def get_player_state(teams):
+def get_player_state(event, granularity):
+
+    def flatten_lists(loadout=False):
+        # Flatten objectives
+        objectives = {}
+        for objective in _player["objectives"]:
+            objectives[objective["id"]] = objective["completionCount"]
+
+        # Flatten killAssistsReceivedFromPlayer
+        assisted_by = {}
+        for _assisted_by in _player["killAssistsReceivedFromPlayer"]:
+            assister_name = player_name_id_map[_assisted_by["playerId"]]
+            assisted_by[assister_name] = _assisted_by["killAssistsReceived"]
+
+        # Flatten teamkillAssistsReceivedFromPlayer
+        team_kill_assisted_by = {}
+        for _assisted_by in _player["teamkillAssistsReceivedFromPlayer"]:
+            assister_name = player_name_id_map[_assisted_by["playerId"]]
+            assisted_by[assister_name] = _assisted_by["teamkillAssistsReceived"]
+
+        if loadout:
+            # Flatten loadout
+            player_loadout = {
+                "primary":None,
+                "secondary":None,
+                "melee":None,
+                "helm":None,
+                "kevlarVest":None,
+                "bomb":None,
+                "defuser":None,
+                "decoy":None,
+                "flashbang":None,
+                "hegrenade":None,
+                "incgrenade":None,
+                "molotov":None,
+                "smokeGrenade":None,
+                "taser":None
+                }
+
+            for item in _player["items"]:
+                item_id = item["id"]
+                if item_id in primary:
+                    player_loadout["primary"] = item_id
+                elif item_id in secondary:
+                    player_loadout["secondary"] = item_id
+                elif item_id in melee:
+                    player_loadout["melee"] = item_id
+                else:
+                    player_loadout[item_id] = item_id
+
+            return objectives, assisted_by, team_kill_assisted_by, player_loadout
+        else:
+            return objectives, assisted_by, team_kill_assisted_by
+
+    def sort_and_change_dtype(players, sort_key):
+        players = sorted(players, key=sort_key)
+        players = pd.json_normalize(players)
+        cols = players.columns
+
+        rearranged_cols = []
+        if "map_seq" in cols:
+            rearranged_cols.extend(["map_seq", "map_name"])
+        if "round_seq" in cols:
+            rearranged_cols.extend(["round_seq"])
+        rearranged_cols.extend(["team", "name"])
+        for col in cols:
+            if col not in rearranged_cols:
+                rearranged_cols.append(col)
+        players = players[rearranged_cols]
+        for col in cols:
+            if is_float_dtype(players[col]) and col != "adr":
+                players[col] = players[col].astype('Int64')
+        return players
 
     # All weapons lists
     primary = ['mag7','nova','xm1014','mac10','mp9','ak47','aug','famas','galilar','m4a1','m4a1_silencer','ssg08','awp','m249','negev','scar20','g3sg1','sg553','ppbizon','mp7','ump45','p90','mp5_silencer','sawedoff']
     secondary = ['hkp2000','cz75a','deagle','fiveseven','glock','p250','tec9','usp_silencer', 'elite', 'revolver']
     melee = ['knife','knife_t']
 
-    players = []
-
-    for team in teams:
-        team_name = team["name"]
-        team_side = team["side"] if "side" in team else None
-        team_score = team["score"]
-        team_total_kills = team["kills"]
-
+    player_name_id_map = {}
+    for team in event["seriesState"]["teams"]:
         for _player in team["players"]:
-            player = {}
-            player["team"] = team_name
-            player["team_side"] = team_side
-            player["team_score"] = team_score
-            player["team_total_kills"] = team_total_kills
+            player_name_id_map[_player["id"]] = _player["name"]
 
-            # Flatten objectives
-            objectives = {}
-            for objective in _player["objectives"]:
-                objectives[objective["id"]] = objective["completionCount"]
+    players = []
+    if granularity == "series":
+        teams = event["seriesState"]["teams"]
+        for team in teams:
+            team_name = team["name"]
 
-            # Flatten loadout
-            player_loadout = {"loadout":
-                                {
-                                    "primary":None,
-                                    "secondary":None,
-                                    "melee":None,
-                                    "helm":None,
-                                    "kevlarVest":None,
-                                    "bomb":None,
-                                    "defuser":None,
-                                    "decoy":None,
-                                    "flashbang":None,
-                                    "hegrenade":None,
-                                    "incgrenade":None,
-                                    "molotov":None,
-                                    "smokeGrenade":None,
-                                    "taser":None
-                                    }
-                                }
+            for _player in team["players"]:
+                player_info = deepcopy(_player)
+                objectives, assisted_by, team_kill_assisted_by = flatten_lists()
 
-            for item in _player["items"]:
-                item_id = item["id"]
-                if item_id in primary:
-                    player_loadout["loadout"]["primary"] = item_id
-                elif item_id in secondary:
-                    player_loadout["loadout"]["secondary"] = item_id
-                elif item_id in melee:
-                    player_loadout["loadout"]["melee"] = item_id
-                else:
-                    player_loadout["loadout"][item_id] = item_id
+                # Remove useless fields
+                redundant_fields = [
+                    "statePath",
+                    "participationStatus",
+                    "structuresDestroyed",
+                    "structuresCaptured",
+                    "killAssistsReceivedFromPlayer",
+                    "teamkillAssistsReceivedFromPlayer",
+                    "externalLinks"
+                ]
+                for field in redundant_fields:
+                    player_info.pop(field)
 
-            # Remove useless fields
-            redundant_fields = ["statePath", "character", "items", "externalLinks", "objectives"]
-            for field in redundant_fields:
-                _player.pop(field)
+                for _updates in [
+                    {"objectives": objectives},
+                    {"killAssistsReceivedFromPlayer": assisted_by},
+                    {"teamkillAssistsReceivedFromPlayer": team_kill_assisted_by},
+                    {"team": team_name}]:
+                    player_info.update(_updates)
 
-            player.update(_player)
-            player.update(objectives)
-            player.update(player_loadout)
-            players.append(player)
+                players.append(player_info)
+        players = sort_and_change_dtype(players, sort_key=lambda x: (x["team"], x["name"]))
+        return players
 
-    players = sorted(players, key=lambda x: (x["team"], x["name"]))
+    elif granularity == "game":
+        games = event["seriesState"]["games"]
+        for game in games:
+            map_seq = game["sequenceNumber"]
+            map_name = game["map"]["name"]
+            num_rounds = int(game["segments"][-1]["id"].split("-")[-1])
+            teams = game["teams"]
 
-    return players
+            multikills = {}
+            for round in game["segments"]:
+                for team in round["teams"]:
+                    for _player in team["players"]:
+                        player_name = _player["name"]
+                        player_kills = _player["kills"]
+                        if player_kills > 2:
+                            if player_name in multikills:
+                                multikills[player_name] += 1
+                            else:
+                                multikills[player_name] = 1
 
-def get_player_game_state(event, return_df=True):
-    """ Returns df of players' most updated state """
+            for team in teams:
+                team_name = team["name"]
 
-    series_start = event["seriesState"]["startedAt"].split("T")[0]
+                for _player in team["players"]:
+                    player_info = deepcopy(_player)
+                    player_name = player_info["name"]
+                    objectives, assisted_by, team_kill_assisted_by, player_loadout = flatten_lists(loadout=True)
 
-    event = deepcopy(event)
-    game = event["seriesState"]["games"][-1]
+                    adr = player_info["damageDealt"]/num_rounds
+                    multikill = multikills[player_name] if player_name in multikills else 0
 
-    map_seq = game["sequenceNumber"]
-    map_name = game["map"]["name"]
-    round_seq = game["segments"][-1]["sequenceNumber"]
+                    # Remove useless fields
+                    redundant_fields = [
+                        "statePath",
+                        "character",
+                        "participationStatus",
+                        "structuresDestroyed",
+                        "structuresCaptured",
+                        "items",
+                        "position",
+                        "killAssistsReceivedFromPlayer",
+                        "teamkillAssistsReceivedFromPlayer",
+                        "externalLinks"
+                    ]
+                    for field in redundant_fields:
+                        player_info.pop(field)
 
-    teams = game["teams"]
-    players = get_player_state(teams)
-    for player in players:
-        player["seriesStart"] = series_start
-        player["map_seq"] = f"Map {map_seq}"
-        player["map_name"] = map_name
-        player["round_seq"] = f"Round {round_seq}"
+                    for _updates in [
+                        {"multikills": multikill},
+                        {"adr": adr},
+                        {"map_seq": map_seq},
+                        {"map_name": map_name},
+                        {"objectives": objectives},
+                        {"killAssistsReceivedFromPlayer": assisted_by},
+                        {"teamkillAssistsReceivedFromPlayer": team_kill_assisted_by},
+                        {"team": team_name},
+                        {"loadout": player_loadout}]:
+                        player_info.update(_updates)
 
-    if return_df:
-        return pd.json_normalize(players)
-    else:
+                    players.append(player_info)
+        players = sort_and_change_dtype(players, sort_key=lambda x: (x["map_seq"], x["team"], x["name"]))
+
+        return players
+
+    elif granularity == "round":
+        games = event["seriesState"]["games"]
+        for game in games:
+            map_seq = game["sequenceNumber"]
+            map_name = game["map"]["name"]
+            for round in game["segments"]:
+                round_seq = int(round["id"].split("-")[-1])
+                teams = round["teams"]
+
+                for team in teams:
+                    team_name = team["name"]
+
+                    for _player in team["players"]:
+                        player_info = deepcopy(_player)
+                        objectives, assisted_by, team_kill_assisted_by = flatten_lists()
+
+                        # Remove useless fields
+                        redundant_fields = [
+                            "statePath",
+                            "killAssistsReceivedFromPlayer",
+                            "teamkillAssistsReceivedFromPlayer",
+                            "externalLinks"
+                        ]
+                        for field in redundant_fields:
+                            player_info.pop(field)
+
+                        for _updates in [
+                            {"round_seq": round_seq},
+                            {"map_seq": map_seq},
+                            {"map_name": map_name},
+                            {"objectives": objectives},
+                            {"killAssistsReceivedFromPlayer": assisted_by},
+                            {"teamkillAssistsReceivedFromPlayer": team_kill_assisted_by},
+                            {"team": team_name}]:
+                            player_info.update(_updates)
+
+                        players.append(player_info)
+        players = sort_and_change_dtype(players, sort_key=lambda x: (x["map_seq"], x["round_seq"], x["team"], x["name"]))
+
         return players
 
 def get_player_health_armor(event):
@@ -316,29 +332,44 @@ def get_player_health_armor(event):
 
     required_fields = ["currentHealth", "currentArmor"]
     default_fields = ["team", "name"]
-    players = get_player_game_state(event).filter(items=(default_fields + required_fields))
-    return players
+    players = get_player_state(event, granularity="game").filter(items=(default_fields + required_fields))
+    return players.tail(10).reset_index(drop=True)
 
 def get_player_economy(event):
     required_fields = ["money", "inventoryValue", "netWorth"]
     default_fields = ["team", "name"]
-    players = get_player_game_state(event).filter(items=(default_fields + required_fields))
+    players = get_player_state(event, granularity="game").filter(items=(default_fields + required_fields))
+    return players.tail(10).reset_index(drop=True)
+
+def get_player_kdao(event, granularity):
+    if granularity == "game":
+        required_fields = ["^adr$", "^kills$", "^killAssistsGiven$", "^deaths$", "^multikills$", "objectives.*"]
+    else:
+        required_fields = ["^kills$", "^killAssistsGiven$", "^deaths$", "objectives.*"]
+    default_fields = ["^map_seq$", "^map_name$", "^team$", "^name$"]
+    players = get_player_state(event, granularity).filter(regex="|".join(default_fields + required_fields)).fillna(0)
     return players
 
-def get_player_kdao(event):
-    required_fields = ["kills", "killAssistsGiven", "deaths", "beginDefuseWithKit", "beginDefuseWithoutKit", "defuseBomb", "explodeBomb", "plantBomb"]
-    default_fields = ["team", "name"]
-    players = get_player_game_state(event).filter(items=(default_fields + required_fields)).fillna(0)
-    for col in ["beginDefuseWithKit", "beginDefuseWithoutKit", "defuseBomb", "explodeBomb", "plantBomb"]:
-      if col in players.columns:
-        players[col] = players[col].astype('Int64')
-    return players
-
-def get_loadout(event):
+def get_loadouts(event):
     required_fields = ["loadout.*"]
-    default_fields = ["^team$", "^name$"]
-    players = get_player_game_state(event).filter(regex="|".join(default_fields + required_fields))
-    return players
+    default_fields = ["^map_seq$", "^map_name$", "^team$", "^name$"]
+    players = get_player_state(event, granularity="game").filter(regex="|".join(default_fields + required_fields))
+    return players.tail(10).reset_index(drop=True)
+
+def pkp(event):
+    player_name_id_map = {}
+    for team in event["seriesState"]["teams"]:
+        for _player in team["players"]:
+            player_name_id_map[_player["id"]] = _player["name"]
+    actor = player_name_id_map[event["actor"]["id"]]
+    target = player_name_id_map[event["target"]["id"]]
+    action = event["action"]
+    weapon = list(event["actor"]["stateDelta"]["series"]["weaponKills"].keys())[0]
+    round_time = event["seriesState"]["games"][-1]["clock"]["currentSeconds"]
+    minutes = int(round_time/60)
+    seconds = round_time % 60
+    action_str = f"{minutes}:{seconds:02}     {actor} {action} {target} with {weapon}"
+    return actor, target, action, weapon, action_str
 
 
     
@@ -347,10 +378,19 @@ def get_loadout(event):
 
 # Streamlit Visuals
 # Top Header Section
-st.title("During Series")
+event = json.loads(full_events[3315])["events"][-1]
 
-st.subheader(f"Date of Match: {date}")
+
+st.title("During Series")
+match_date = event["seriesState"]["startedAt"].split("T")[0]
+format =event["seriesState"]["format"]
+
+st.subheader(f"Date of Match: {match_date}")
 st.write(f"Match format: {format}")
+round_num=2
+
+team1 = "ECSTATIC"
+team2 = "forZe"
 
 components.html(
     f"""
@@ -378,32 +418,47 @@ pre_tab.header(f"Round {round_num}")
 
 # During Round Tab
 during_tab.header(f"Round {round_num}")
-during_tab.table(kda)
-during_tab.table(pha)
 
 # Post Round Tab
 post_tab.header(f"Round {round_num}")
-
-event = json.loads(json_list[2315])["events"][-1]
-
 round_events = get_team_info(event, granularity="round")
 line_chart_df = round_events.drop(["map_seq",'map','won','side','objectives.plantBomb','objectives.explodeBomb','objectives.beginDefuseWithKit','objectives.defuseBomb','objectives.beginDefuseWithoutKit'], axis=1)
 with post_tab:
     # data prep for line chart - split df into teams
     line_chart_team1 = line_chart_df[line_chart_df['name'] == "ECSTATIC"].drop(["name"], axis=1)
     line_chart_team2 = line_chart_df[line_chart_df['name'] == "forZe"].drop(["name"], axis=1)
-    round_tracker = 0
     live_data_team1 = pd.DataFrame()
     live_data_team2 = pd.DataFrame()
     live_data = pd.DataFrame()
     placeholder = st.empty()
+    placeholder2 = st.empty()
+    json_row_counter = 0
+    counter_list = [100,238,357,476,595,714,833,952,1071,1190,1309,1428,1547,1666,1785,1904,2023,2142,2261,2380,2499,2618,2737,
+    2856,2975,3094,3213,3332,3451,3570,3689,3808,3927,4046,4165,4284,4403,4522,4641,4760,4879,4998,
+    5117,5236,5355,5474,5593,5712,5831,5993]
+    round_tracker = 0
+    for seconds in range(50):
+        row = counter_list[seconds]
+        event = json.loads(full_events[row])["events"][-1]
 
-    for seconds in range(40):
         with placeholder.container():
+            st.write(counter_list)
+            try:
+                map = get_team_info(event, granularity="game").iloc[[-1]]["map"]
+            except KeyError:
+                event = json.loads(full_events[row])["events"][-2]
+                map = get_team_info(event, granularity="game").iloc[[-1]]["map"]
+
+            st.write(map)
             latest_round = line_chart_df.iloc[[round_tracker]]
+            round_tracker +=1
             live_data = pd.concat([live_data,latest_round ], ignore_index=True)
-            round_tracker+=1
             fig2 = px.line(data_frame = live_data,y =live_data['kills'] , x =live_data['round_seq'], color=live_data['name'])
             st.write(fig2)
-            time.sleep(1)
+            time.sleep(0.5)
+            # in one loop, grab a random number of lines in the jsonl (e.g 7 lines), get series state of last even of last line.
+        
+        with placeholder2.container():  
+            player_kda = get_player_kdao(event, granularity="game")
+            st.write(player_kda)
     
