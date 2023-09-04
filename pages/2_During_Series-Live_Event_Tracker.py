@@ -9,6 +9,7 @@ from highcharts_core.options.series.bar import BarSeries
 import streamlit as st
 import streamlit.components.v1 as components
 import streamlit_highcharts as hct
+import altair as alt
 import json
 from datetime import date
 import pandas as pd
@@ -133,12 +134,26 @@ kda = get_player_kdao(event)
 team1='TeamA'
 team2='TeamB'
 round_num=2
-team1player1='Player Tom'
-team2player1='Player Jerry'
-team2player2='Player Bugs Bunny'
-event_action1='headshot'
-event_action2='picked up'
-item1='boom boom grenade'
+
+event_time1 = '00:59'
+event_log1 = 'FaZe Player A planted a bomb at Theta site'
+event_time2 = '01:23'
+event_log2 = 'FaZe Player B picked up a Deagle'
+events_df = pd.DataFrame(columns=['event_time', 'event_log'])
+events_df.loc[0] = [event_time1, event_log1]
+events_df.loc[1] = [event_time2, event_log2]
+
+kill_time1 = '00:27'
+kill_actor1 = 'FaZe Player C + D'
+weapon1 = 'https://static.wikia.nocookie.net/cswikia/images/8/80/CSGO_AK-47_Inventory.png/revision/latest?cb=20130813201911'
+killed_actor1 = 'Navi Player A'
+kill_time2 = '00:49'
+weapon2 = 'https://static.wikia.nocookie.net/cswikia/images/f/f3/CSGO_Desert_Eagle_Inventory.png/revision/latest?cb=20130903115839'
+kill_actor2 = 'FaZe Player B'
+killed_actor2 = 'Navi Player E'
+kills_df = pd.DataFrame(columns=['kill_time', 'kill_actor', 'weapon', 'killed_actor'])
+kills_df.loc[0] = [kill_time1, kill_actor1, weapon1, killed_actor1]
+kills_df.loc[1] = [kill_time2, kill_actor2, weapon2, killed_actor2]
 
 # Streamlit Visuals
 # Top Header Section
@@ -151,13 +166,13 @@ components.html(
     f"""
     <div style="height:200px; background-color:#31333F;display: grid;column-gap: 30px;grid-template-columns: auto auto auto;padding: 10px;">
         <div style="text-align: right;">
-            <h3 style="color:white;font-family:Source Sans Pro;">{team1}</h3>
+            <h3 style="color:white;font-family:courier;">{team1}</h3>
             <img style="height:50px;" src="https://img-cdn.hltv.org/teamlogo/Ox1eFAB6o8VM6jwgPbQuks.svg?ixlib=java-2.1.0&s=66680f6d946ff4a93bc311f3bbab8d9e" />
         </div>
 
-        <h3 style="color:white;font-size:40px;;text-align: center; ">2 - 0</h3>
+        <h3 style="color:white;font-size:40px;font-family:courier;text-align: center; ">2 - 0</h3>
         <div style="text-align: left;">
-            <h3 style="color:white;">{team2}</h3>
+            <h3 style="color:white;font-family:courier;">{team2}</h3>
             <img style="height:50px;" src="https://preview.redd.it/new-forze-logo-v0-x31u5t3sg8ba1.png?width=600&format=png&auto=webp&s=041b6912e65d06e150219f63f79dc05b911e9c04" />
         </div>
     </div>
@@ -169,17 +184,36 @@ components.html(
 pre_tab, during_tab, post_tab = st.tabs(["Pre-Round", "During Round", "Post-Round"])
 
 # Pre-Round Tab
-pre_tab.header(f"Round {round_num}")
+with pre_tab:
+    st.header(f"Round {round_num}")
 
 # During Round Tab
-during_tab.header(f"Round {round_num}")
-during_tab.subheader("Latest Events", divider='rainbow')
-during_tab.markdown(team2player2+' '+event_action2+' '+item1)
-during_tab.subheader("All Kills", divider='rainbow')
-during_tab.markdown(team1player1+' '+event_action1+' '+team2player1)
-during_tab.table(kda)
-during_tab.subheader("Players' Stats", divider='rainbow')
-during_tab.table(pha)
+with (during_tab):
+    # Round Status
+    st.markdown(f"## Round {round_num}")
+
+    # Events Log
+    st.subheader("Latest Events", divider='rainbow')
+    st.dataframe(events_df, hide_index=True)
+
+    # Kills Log
+    st.subheader("All Kills", divider='rainbow')
+    st.dataframe(kills_df, column_config={"weapon": st.column_config.ImageColumn(label="weapon", width='small')}, hide_index=True)
+
+    # Player Health Log
+    st.subheader("Players' Stats", divider='rainbow')
+    col1, col2 = st.columns(2)
+    col1.markdown("### Terrorists")
+    df_t = pha.set_index('name')
+    df_t = pha.pivot(index="name", columns="team", values=['currentHealth', 'currentArmor']).reset_index()
+    bar_chart_day = alt.Chart(df_t).transform_fold(['currentHealth', 'currentArmor']) \
+        .mark_bar(clip=True).encode(x=alt.X('value:Q', stack='zero', scale=alt.Scale(domain=(0, 100))),
+                                    y=alt.Y('name'), color='key:N')
+    bar_chart_day
+    st.table(df_t)
+    col2.markdown("### Counter Terrorists")
+
 
 # Post Round Tab
-post_tab.header(f"Round {round_num}")
+with post_tab:
+    st.header(f"Round {round_num}")
