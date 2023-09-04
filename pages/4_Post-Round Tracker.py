@@ -27,6 +27,7 @@ def load_data():
 
 
 full_events = load_data()
+st.button("Rerun")
 
 
 
@@ -378,12 +379,12 @@ def pkp(event):
 
 # Streamlit Visuals
 # Top Header Section
-event = json.loads(full_events[3315])["events"][-1]
+last_event = json.loads(full_events[3315])["events"][-1]
 
 
 st.title("During Series")
-match_date = event["seriesState"]["startedAt"].split("T")[0]
-format =event["seriesState"]["format"]
+match_date = last_event["seriesState"]["startedAt"].split("T")[0]
+format =last_event["seriesState"]["format"]
 
 st.subheader(f"Date of Match: {match_date}")
 st.write(f"Match format: {format}")
@@ -421,44 +422,65 @@ during_tab.header(f"Round {round_num}")
 
 # Post Round Tab
 post_tab.header(f"Round {round_num}")
-round_events = get_team_info(event, granularity="round")
-line_chart_df = round_events.drop(["map_seq",'map','won','side','objectives.plantBomb','objectives.explodeBomb','objectives.beginDefuseWithKit','objectives.defuseBomb','objectives.beginDefuseWithoutKit'], axis=1)
 with post_tab:
-    # data prep for line chart - split df into teams
-    line_chart_team1 = line_chart_df[line_chart_df['name'] == "ECSTATIC"].drop(["name"], axis=1)
-    line_chart_team2 = line_chart_df[line_chart_df['name'] == "forZe"].drop(["name"], axis=1)
-    live_data_team1 = pd.DataFrame()
-    live_data_team2 = pd.DataFrame()
-    live_data = pd.DataFrame()
-    placeholder = st.empty()
-    placeholder2 = st.empty()
-    json_row_counter = 0
+
     counter_list = [100,238,357,476,595,714,833,952,1071,1190,1309,1428,1547,1666,1785,1904,2023,2142,2261,2380,2499,2618,2737,
     2856,2975,3094,3213,3332,3451,3570,3689,3808,3927,4046,4165,4284,4403,4522,4641,4760,4879,4998,
     5117,5236,5355,5474,5593,5712,5831,5993]
-    round_tracker = 0
-    for seconds in range(50):
+    placeholder = st.empty()
+    placeholder2 = st.empty()
+    map1 = "Inferno"
+    for seconds in range(30):
         row = counter_list[seconds]
         event = json.loads(full_events[row])["events"][-1]
-
+        map = get_team_info(event, granularity="game").iloc[[-1]]["map"]
         with placeholder.container():
-            st.write(counter_list)
             try:
                 map = get_team_info(event, granularity="game").iloc[[-1]]["map"]
             except KeyError:
                 event = json.loads(full_events[row])["events"][-2]
                 map = get_team_info(event, granularity="game").iloc[[-1]]["map"]
+            
+            full_df = get_team_info(event, granularity="round")
+            team_round_kills = full_df.loc[full_df.map_seq == (1)]
 
-            st.write(map)
-            latest_round = line_chart_df.iloc[[round_tracker]]
-            round_tracker +=1
-            live_data = pd.concat([live_data,latest_round ], ignore_index=True)
-            fig2 = px.line(data_frame = live_data,y =live_data['kills'] , x =live_data['round_seq'], color=live_data['name'])
+            st.subheader(map1)
+            
+            fig2 = px.line(data_frame = team_round_kills,y =team_round_kills['kills'] , x =team_round_kills['round_seq'], color=team_round_kills['name'])
             st.write(fig2)
             time.sleep(0.5)
-            # in one loop, grab a random number of lines in the jsonl (e.g 7 lines), get series state of last even of last line.
         
         with placeholder2.container():  
-            player_kda = get_player_kdao(event, granularity="game")
-            st.write(player_kda)
-    
+            player_kda = get_player_kdao(event, granularity="game").loc[get_player_kdao(event, granularity="game").map_seq == (1)]
+            team1 = player_kda["team"].unique()[0]
+            team2 = player_kda["team"].unique()[1]
+
+            bomb_info = ['objectives.plantBomb','objectives.beginDefuseWithKit','objectives.beginDefuseWithoutKit','objectives.defuseBomb','objectives.explodeBomb']
+
+            team1_df = player_kda.loc[player_kda.team==team1].drop(["map_name","team"], axis=1)
+            team2_df = player_kda.loc[player_kda.team==team2].drop(["map_name","team"], axis=1)
+
+            for metric in bomb_info:
+                if metric not in team1_df:
+                    team1_df[metric] = 0
+                if metric not in team2_df:
+                    team2_df[metric] = 0
+
+            team1_killInfo = team1_df[['map_seq','name','kills','killAssistsGiven','multikills','deaths','adr']]
+            team1_bombInfo = team1_df[['map_seq','name','objectives.plantBomb','objectives.beginDefuseWithKit','objectives.beginDefuseWithoutKit','objectives.defuseBomb','objectives.explodeBomb']]
+
+            team2_killInfo = team2_df[['map_seq','name','kills','killAssistsGiven','multikills','deaths','adr']]
+            team2_bombInfo = team2_df[['map_seq','name','objectives.plantBomb','objectives.beginDefuseWithKit','objectives.beginDefuseWithoutKit','objectives.defuseBomb','objectives.explodeBomb']]
+            st.subheader(team1)
+            st.write("Kill Information")
+            st.table(team1_killInfo)
+            st.write("Bomb Information")
+            st.table(team1_bombInfo)
+
+            st.subheader(team2)
+            st.write("Kill Information")
+            st.table(team2_killInfo)
+            st.write("Bomb Information")
+            st.table(team2_bombInfo)
+            time.sleep(0.5)
+        
