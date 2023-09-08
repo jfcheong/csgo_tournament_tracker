@@ -14,6 +14,7 @@ import json
 from datetime import date
 import pandas as pd
 from copy import deepcopy
+import utils
 
 
 # Load events jsonl file

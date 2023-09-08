@@ -106,7 +106,7 @@ components.html(
     f"""
     <div style="height:200px; background-color:#F0F2F6;display: grid;column-gap: 2%;grid-template-columns: auto auto;padding: 10px;">
         <div style="text-align: center;">
-            <h3 style="color:black;font-family:Source Sans Pro;">{final_teams[0]}</h3>
+            <h3 style="color:black;font-family: Cambria, Georgia, serif;">{final_teams[0]}</h3>
             <img style="height:50px;" src="{ecstatic_url}" />
         </div>
         
@@ -139,16 +139,16 @@ with col1:
 
     components.html(
     f"""
-    <div style="padding-bottom:10px">
-            <h3 style="color:black;font-family:Source Sans Pro;">{relevant_team} <img style="height:50px;" src="{ecstatic_url}" /></h3> 
+    <div style="padding-bottom:10px;text-align:center">
+            <h3 style="color:black;font-family: Cambria, Georgia, serif;">{relevant_team} <img style="height:50px;" src="{ecstatic_url}" /></h3> 
         </div>
     <div style="height:200px; background-color:#F0F2F6;display: grid;column-gap: 30px;grid-template-columns: auto auto auto;padding: 10px;">
         <div style="text-align: center;">
-            <h3 style="color:black;font-family:Source Sans Pro;">{list(col1_match_score)[0]}</h3>
+            <h3 style="color:black;font-family: Cambria, Georgia, serif;">{list(col1_match_score)[0]}</h3>
         </div>
 
         <div style="text-align: left;">
-            <p style="font-size:40px;color:black;font-family:Source Sans Pro;">{col1_match_score[list(col1_match_score)[0]]} - {col1_match_score[list(col1_match_score)[1]]}</p>
+            <p style="font-size:40px;color:black;font-family: Cambria, Georgia, serif;">{col1_match_score[list(col1_match_score)[0]]} - {col1_match_score[list(col1_match_score)[1]]}</p>
         </div>
         
         <div style="text-align: center;">
@@ -184,7 +184,7 @@ with col1:
             'inverted': 'false'
         },
         'title': {
-            'text': 'Player Kill Death Ratio (KDR)'
+            'text': 'Player Kill Death Assist Ratio (KDR)'
         },
         'xAxis': {
             'categories': player_name,
@@ -235,17 +235,17 @@ with col2:
 
     components.html(
     f"""
-    <div style="padding-bottom:10px">
-            <h3 style="color:black;font-family:Source Sans Pro;">{relevant_team}  <img style="height:50px;" src="{forze_url}" /></h3>
+    <div style="padding-bottom:10px; text-align:center">
+            <h3 style="color:black;font-family: Cambria, Georgia, serif;">{relevant_team}  <img style="height:50px;" src="{forze_url}" /></h3>
         
         </div>
     <div style="height:200px; background-color:#F0F2F6;display: grid;column-gap: 30px;grid-template-columns: auto auto auto;padding: 10px;">
         <div style="text-align: center;">
-            <h3 style="color:black;font-family:Source Sans Pro;">{list(col2_match_score)[0]}</h3>
+            <h3 style="color:black;font-family: Cambria, Georgia, serif;">{list(col2_match_score)[0]}</h3>
         </div>
 
         <div style="text-align: center;">
-            <p style="font-size:40px;color:black;font-family:Source Sans Pro;">{col2_match_score[list(col2_match_score)[0]]} - {col2_match_score[list(col2_match_score)[1]]}</p>
+            <p style="font-size:40px;color:black;font-family: Cambria, Georgia, serif;">{col2_match_score[list(col2_match_score)[0]]} - {col2_match_score[list(col2_match_score)[1]]}</p>
         </div>
         
         <div style="text-align: center;">
@@ -255,11 +255,6 @@ with col2:
 	
     """
     ,height=250)
-    
-    st.subheader("Players")
-    #retrieve the list of teams in semi finals match and identify the team that has entered finals with player KDR info
-    teams = list(match_result.keys())
-    team1 = list(set(teams) & set(final_teams))[0]
 
     kills = get_match_result_per_player(semifinals_file1, key='kills')
     assists = get_match_result_per_player(semifinals_file1, key='killAssistsGiven')
@@ -267,14 +262,17 @@ with col2:
 
     sum_of_kd = {}
     kdr={}
-    for key, value in kills[team1].items():
-        sum_of_kd[key] = value + assists[team1][key]
+    for key, value in kills[relevant_team].items():
+        sum_of_kd[key] = value + assists[relevant_team][key]
 
     for key, value in sum_of_kd.items():
-        kdr[key] = round(value / death[team1][key],2)
+        kdr[key] = round(value / death[relevant_team][key],2)
 
     player_kdr = list(kdr.values())
     player_name = list(kdr.keys())
+
+    
+    st.subheader("Players")
 
     # plotting the bar charts
 
@@ -284,7 +282,7 @@ with col2:
             'inverted': 'false'
         },
         'title': {
-            'text': 'Player Kill Death Ratio (KDR)'
+            'text': 'Player Kill Death Assist Ratio (KDR)'
         },
         'xAxis': {
             'categories': player_name,

@@ -15,6 +15,8 @@ import pandas as pd
 import numpy as np
 from collections.abc import Iterable
 from highcharts import Highchart
+from utils import utils
+import plotly.express as px
 
 @st.cache_data  # 👈 Add the caching decorator
 def load_data():
@@ -25,16 +27,17 @@ def load_data():
         for event in line_item["events"]:
             event_name = event["type"]
             if event_name == "tournament-ended-series":
-                st.write(event_name)
-                result = event["seriesState"]
+                return event
+                
                 break
 
-    return result
+
 
 st.title("Post Series Analysis")
 
 
-result = load_data()
+event = load_data()
+result = event["seriesState"]
 match_date = result["startedAt"].split("T")[0]
 
 
@@ -70,13 +73,13 @@ components.html(
     f"""
     <div style="height:200px; background-color:#F0F2F6;display: grid;column-gap: 30px;grid-template-columns: auto auto auto;padding: 10px;">
         <div style="text-align: right;">
-            <h3 style="color:black;font-family:Source Sans Pro;">{winning_team}</h3>
+            <h3 style="color:black; font-family: Cambria, Georgia, serif;">{winning_team}</h3>
             <img style="height:50px;" src="{forze_url}" />
         </div>
         
-        <h3 style="color:black;font-size:40px;;text-align: center; ">2 - 0</h3>
+        <h3 style="color:black;font-size:40px;;text-align: center;font-family: Cambria, Georgia, serif; ">2 - 0</h3>
         <div style="text-align: left;">
-            <h3 style="color:black;">{losing_team}</h3>
+            <h3 style="color:black;font-family: Cambria, Georgia, serif;">{losing_team}</h3>
             <img style="height:50px;" src="{ecstatic_url}" />
         </div>
     </div>
@@ -294,7 +297,19 @@ H.add_data_set(team2_ADR, 'bar', f'{losing_team}')
 st.header("Team Comparison")
 components.html(H.htmlcontent,height=400)
 # hct.streamlit_highcharts(combined_chart,400)
+get_kda = utils.get_player_kdao(event,"game")
+multikills_df = get_kda[["team","name","multikills"]]
+st.write(multikills_df)
+team1_multikills = multikills_df[multikills_df['team'] == winning_team ].drop(["team"], axis=1)
+team2_multikills = multikills_df[multikills_df['team'] == losing_team ].drop(["team"], axis=1)
+team1_multikills = team1_multikills.groupby(['name']).agg({'multikills':'sum'})
+team2_multikills = team2_multikills.groupby(['name']).agg({'multikills':'sum'})
 
+st.write(team2_multikills)
+team1_multikills.reset_index(inplace=True)
+team2_multikills.reset_index(inplace=True)
+fig2 = px.bar(data_frame = team1_multikills,y =team1_multikills['multikills'] , x =team1_multikills['name'])
+st.write(fig2)
 st.header("Player Statistics")
 
 games_df = pd.DataFrame(result["games"])
@@ -331,18 +346,44 @@ for i in range(len(map_tabs)):
         else:
             map_stats = team_stats_per_round[(team_stats_per_round.game_sequenceNumber==i) & ((team_stats_per_round.won==True))]
             map_score = map_stats['name'].value_counts()
-            st.write(winning_team , 'won', map_score[winning_team])
-            st.write(losing_team , 'lost', map_score[losing_team])
+
+            components.html(
+                f"""
+                <div style="height:300px;display: grid;column-gap: 30px;grid-template-columns: auto auto auto;padding: 10px;">
+                    <div style="text-align: right;">
+                        <h3 style="color:black; font-family: Cambria, Georgia, serif;">{winning_team}</h3>
+                        <img style="height:50px;" src="{forze_url}" />
+                    </div>
+                    
+                    <div style="display:inline-block;color:black;font-size:40px;;text-align: center;font-family: Cambria, Georgia, serif; ">
+                        <span><span style="color:green;">{map_score[winning_team]}</span>
+                        <span> - {map_score[losing_team]}</span></span>
+                    </div>
+                    <div style="text-align: left;">
+                        <h3 style="color:black;font-family: Cambria, Georgia, serif;">{losing_team}</h3>
+                        <img style="height:50px;" src="{ecstatic_url}" />
+                    </div>
+                </div>
+                
+                """
+            )
             
-            map_df = player_stats_per_round[(player_stats_per_round.game == i)]
-            map_df = map_df.groupby(['name']).sum()
-            map_df.reset_index(inplace=True)
-            map_df['team'] = np.where(map_df['name'].isin(team1_players), winning_team,losing_team)
-            map_team1_df, map_team2_df = map_df[map_df['team'] == winning_team], map_df[map_df['team'] == losing_team]
+            player_stats_per_game = pd.json_normalize(data=result["games"],
+                               record_path=["teams","players"],
+                               meta=["sequenceNumber", "map",["teams","name"]])
+            
+            player_stats_per_game = player_stats_per_game[player_stats_per_game['sequenceNumber']==i]
+            game_player_stats = player_stats_per_game.groupby(['teams.name','name']).agg({'kills':'sum','deaths':'sum','killAssistsGiven':'sum'})
+            game_player_stats['ADR'] = player_adr
+            game_player_stats['KDA Ratio'] = (game_player_stats['kills'] + game_player_stats['killAssistsGiven']) / game_player_stats['deaths']
+            game_player_stats.reset_index(inplace=True)
+            map_team1_df, map_team2_df = game_player_stats[game_player_stats['teams.name'] == winning_team], game_player_stats[game_player_stats['teams.name'] == losing_team]
+            
+
             st.subheader(f"Team 1 - {winning_team}")
-            map_team1_df = map_team1_df.sort_values(['kills'], ascending=[False]).drop(["game","team"],axis=1)
-    
+            map_team1_df = map_team1_df.sort_values(['kills'], ascending=[False]).drop(["teams.name"],axis=1)
             st.table(map_team1_df)
+
             st.subheader(f"Team 2 - {losing_team}")
-            map_team2_df = map_team2_df.sort_values(['kills'], ascending=[False]).drop(["game","team"],axis=1)
+            map_team2_df = map_team2_df.sort_values(['kills'], ascending=[False]).drop(["teams.name"],axis=1)
             st.table(map_team2_df)
