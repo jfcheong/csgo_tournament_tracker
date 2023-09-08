@@ -328,3 +328,21 @@ def get_loadouts(event):
     default_fields = ["^map_seq$", "^map_name$", "^team$", "^name$"]
     players = get_player_state(event, granularity="game").filter(regex="|".join(default_fields + required_fields))
     return players.tail(10).reset_index(drop=True)
+
+def pkp(event):
+    player_name_id_map = {}
+    for team in event["seriesState"]["teams"]:
+        for _player in team["players"]:
+            player_name_id_map[_player["id"]] = _player["name"]
+    actor = player_name_id_map[event["actor"]["id"]]
+    target = player_name_id_map[event["target"]["id"]]
+    action = event["action"]
+    weapon = list(event["actor"]["stateDelta"]["series"]["weaponKills"].keys())[0]
+    round_time = event["seriesState"]["games"][-1]["clock"]["currentSeconds"]
+    minutes = int(round_time/60)
+    seconds = round_time % 60
+    action_str = f"{minutes}:{seconds:02}     {actor} {action} {target} with {weapon}"
+    return actor, target, action, weapon, action_str
+
+if __name__ == "__main__":
+    print("Loaded utils")
