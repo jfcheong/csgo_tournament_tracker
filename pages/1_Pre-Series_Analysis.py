@@ -8,7 +8,8 @@ import pandas as pd
 import numpy as np
 from highcharts_excentis import Highchart
 
-
+st.set_page_config(page_title="CSGO Pre-Series Analysis", page_icon=":gun:", 
+    layout="wide", initial_sidebar_state="auto", menu_items=None)
 
 st.title("Upcoming Series")
 

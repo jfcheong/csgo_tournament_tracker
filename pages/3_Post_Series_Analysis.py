@@ -9,6 +9,9 @@ import pandas as pd
 import numpy as np
 from utils import utils
 
+st.set_page_config(page_title="CSGO Post Series Analysis", page_icon=":gun:", 
+    layout="wide", initial_sidebar_state="auto", menu_items=None)
+
 
 @st.cache_data  
 def load_data():

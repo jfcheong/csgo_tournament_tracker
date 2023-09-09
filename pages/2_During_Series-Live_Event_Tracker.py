@@ -16,6 +16,8 @@ import pandas as pd
 from copy import deepcopy
 import utils
 
+st.set_page_config(page_title="CSGO Live Event Tracker", page_icon=":gun:", 
+    layout="wide", initial_sidebar_state="auto", menu_items=None)
 
 # Load events jsonl file
 with open('../CCT-Online-Finals-1/2579089_events.jsonl', 'r') as jsonl_file:
