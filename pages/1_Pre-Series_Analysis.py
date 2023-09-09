@@ -211,7 +211,8 @@ with col1:
             'bar': {
                 'dataLabels': {
                     'enabled': True
-                }
+                },
+                'color':'#434348'
             }
         }
     }
@@ -309,7 +310,8 @@ with col2:
             'bar': {
                 'dataLabels': {
                     'enabled': True
-                }
+                },
+                
             }
         }
     }
