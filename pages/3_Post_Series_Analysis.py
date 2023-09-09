@@ -200,9 +200,61 @@ rounds_df = pd.merge(econ_df, round_wins)
 
 team_1_df = rounds_df[rounds_df['name'] == winning_team]
 team_1_econ_win_rate_df = compute_econ_winrate(team_1_df)
+team_1_econ_win_rate_df['winrate'] = team_1_econ_win_rate_df['winrate'].apply(lambda x: round(x*100,2))
+team1_winrate = list(team_1_econ_win_rate_df["winrate"])
+team_1_econ_win_rate_df.reset_index(inplace=True)
+roundType = list(team_1_econ_win_rate_df["roundType"])
 
 team_2_df = rounds_df[rounds_df['name'] == losing_team]
 team_2_econ_win_rate_df = compute_econ_winrate(team_2_df)
+team_2_econ_win_rate_df['winrate'] = team_2_econ_win_rate_df['winrate'].apply(lambda x: round(x*100,2))
+team2_winrate = list(team_2_econ_win_rate_df["winrate"])
+
+H3 = Highchart(height=400)
+h3_options = {
+	'title': {
+        'text': 'Economy Win rate'
+    },
+
+    'xAxis': {
+        'categories':roundType,
+        'title': {
+            'text': None
+        }
+    },
+    'yAxis': {
+        'min': 0,
+        'title': {
+            'text': 'Win-rate Percentage',
+            'align': 'high'
+        },
+        'labels': {
+            'overflow': 'justify'
+        }
+    },
+    'tooltip': {
+        'valueSuffix': ' %'
+    },
+    'credits': {
+        'enabled': False
+    },
+    'plotOptions': {
+        'bar': {
+            'dataLabels': {
+                'enabled': True,
+                'format': '{y}%'
+            }
+        }
+    }
+}
+
+H3.set_dict_options(h3_options)
+
+H3.add_data_set(team1_winrate, 'bar', winning_team)
+H3.add_data_set(team2_winrate, 'bar', losing_team)
+components.html(H3.htmlcontent,height=400)
+
+
 
 #building ADR charts
 team1_players = list(team1_df["name"])
@@ -213,64 +265,6 @@ for num in team1_ADR:
 
 team2_players = list(team2_df["name"])
 team2_ADR = list(team2_df["ADR"])
-
-team1_data = []
-team2_data = []
-
-
-for i in range(len(team1_players)):
-    t1_oneplayer = {}
-    t2_oneplayer = {}
-    t1_oneplayer["name"] = team1_players[i]
-    t1_oneplayer["y"] = round(team1_ADR[i],2)
-    t2_oneplayer["name"] = team2_players[i]
-    t2_oneplayer["y"] = round(team2_ADR[i],2)
-
-    team1_data.append(t1_oneplayer)
-    team2_data.append(t2_oneplayer)
-
-team1_chart={ 'accessibility': { 'announceNewData': { 'enabled': True}},
-  'chart': {'type': 'bar'},
-  'legend': {'enabled': False},
-  'series': [ { 'colorByPoint': True,
-                'data': team1_data,
-                'name': 'ADR'}],
-  'title': { 'align': 'left',
-             'text': f"{winning_team} Players Match Average Damage Per Round (ADR)"},
-  'xAxis': {'type': 'category'},
-  'yAxis': { 'title': { 'text': 'ADR'}},
-  'plotOptions': {
-        'bar': {
-            'dataLabels': {
-                'enabled': 'true'
-            },
-            'groupPadding': 0.1
-        }
-    },
-  }
-
-team2_chart={ 'accessibility': { 'announceNewData': { 'enabled': True}},
-  'chart': {'type': 'bar'},
-  'legend': {'enabled': False},
-  'series': [ { 'colorByPoint': True,
-                'data': team2_data,
-                'name': 'ADR'}],
-  'title': { 'align': 'left',
-             'text': f"{losing_team} Players Match Average Damage Per Round (ADR)"},
-  'xAxis': {'type': 'category'},
-  'yAxis': { 'title': { 'text': 'ADR'}},
-  'plotOptions': {
-        'bar': {
-            'dataLabels': {
-                'enabled': 'true'
-            },
-            'groupPadding': 0.1
-        }
-    },
-  }
-
-#trying side by side chart
-
 
 H = Highchart(height=400)
 
