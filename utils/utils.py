@@ -348,8 +348,10 @@ def get_event_log(event):
         round_time = event["seriesState"]["games"][-1]["clock"]["currentSeconds"]
         minutes = int(round_time/60)
         seconds = round_time % 60
+        round_time = f"{minutes}:{seconds:02}"
+        action_log = f"{actor} {action} {target} with {weapon}"
         event_log = f"{minutes}:{seconds:02}     {actor} {action} {target} with {weapon}"
-        return actor, target, action, weapon, event_log
+        return actor, target, action, weapon, round_time, action_log, event_log
 
     elif re.search(r"\bplayer.*completed.*\b", event_type):
         event_type_map = {
