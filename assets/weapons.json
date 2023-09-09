@@ -32,5 +32,6 @@
     "tec9": ".\\assets\\tec9.png",
     "ump45": ".\\assets\\ump45.png",
     "usp_silencer": ".\\assets\\usp_silencer.png",
-    "xm1014": ".\\assets\\xm1014.png"
+    "xm1014": ".\\assets\\xm1014.png",
+    "None": ".\\assets\\no-weapons.png"
 }
