@@ -18,25 +18,80 @@ from highcharts import Highchart
 from utils import utils
 import plotly.express as px
 
+
 @st.cache_data  # 👈 Add the caching decorator
 def load_data():
+    # simultaneously tracks inventory value per round while iterating to last state for performance optimization
     with open('../CCT-Online-Finals-1/2579089_events.jsonl', 'r') as jsonl_file:
         json_list = list(jsonl_file)
+    economy_per_round = []
     for line_item in json_list:
         line_item = json.loads(line_item)
         for event in line_item["events"]:
-            event_name = event["type"]
-            if event_name == "tournament-ended-series":
-                return event
-                
-                break
+            try:
+                event_type = event["type"]
+                if event_type == 'round-ended-freezetime':
+                    game = event['seriesState']['games'][-1]
+                    round = game['segments'][-1]
+                    map_seq = int(game["sequenceNumber"])
+                    round_seq = int(round["id"].split("-")[-1])
+                    for team in game['teams']:
+                        info = {
+                            'game': map_seq,
+                            'round': round_seq,
+                            'name': team['name'],
+                            'inventoryValue': team['inventoryValue']
+                        }
+                        economy_per_round.append(info)
+                if event_type == 'tournament-ended-series':
+                    return event, economy_per_round
+            except Exception as e:
+                print(e)
+                continue
 
+
+def get_round_results(event, return_df=False):
+    round_wins = []
+    for game in event['seriesState']['games']:
+        map_seq = int(game["sequenceNumber"])
+        for round in game['segments']:
+            round_seq = int(round["id"].split("-")[-1])
+            for team in round['teams']:
+                info = {
+                    'game': map_seq,
+                    'round': round_seq,
+                    'name': team['name'],
+                    'won': team['won']
+                }
+                round_wins.append(info)
+
+    if return_df:
+        return pd.json_normalize(round_wins)
+    return round_wins
+
+
+def compute_round_type(row):
+    if row['inventoryValue'] < 5000:
+        return 'Eco'
+    elif row['inventoryValue'] < 10000:
+        return 'Light Buy'
+    elif row['inventoryValue'] < 20000:
+        return 'Half Buy'
+    else:
+        return 'Full Buy'
+
+
+def compute_econ_winrate(df):
+    df = df[['roundType', 'won']]
+    df['lost'] = ~df['won']
+    econ_win_rate = df.groupby('roundType').sum()
+    econ_win_rate['winrate'] = econ_win_rate['won'] / (econ_win_rate['won'] + econ_win_rate['lost'])
+    return econ_win_rate
 
 
 st.title("Post Series Analysis")
 
-
-event = load_data()
+event, economy = load_data()
 result = event["seriesState"]
 match_date = result["startedAt"].split("T")[0]
 
@@ -137,7 +192,17 @@ with col2:
     st.metric(label="Kills / Death / Assists", value=f"{mvp_kills} / {mvp_death} / {mvp_assist}", delta=kd_diff)
 
 st.header("Economy Winrate")
+round_wins = get_round_results(event, return_df=True)
 
+econ_df = pd.json_normalize(economy)
+econ_df['roundType'] = econ_df.apply(compute_round_type, axis=1)
+rounds_df = pd.merge(econ_df, round_wins)
+
+team_1_df = rounds_df[rounds_df['name'] == winning_team]
+team_1_econ_win_rate_df = compute_econ_winrate(team_1_df)
+
+team_2_df = rounds_df[rounds_df['name'] == losing_team]
+team_2_econ_win_rate_df = compute_econ_winrate(team_2_df)
 
 #building ADR charts
 team1_players = list(team1_df["name"])
