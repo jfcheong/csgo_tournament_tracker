@@ -14,7 +14,9 @@ import json
 from datetime import date
 import pandas as pd
 from copy import deepcopy
-import utils
+from utils import utils
+from PIL import Image
+
 
 st.set_page_config(page_title="CSGO Live Event Tracker", page_icon=":gun:", 
     layout="wide", initial_sidebar_state="auto", menu_items=None)
@@ -27,8 +29,21 @@ with open('../CCT-Online-Finals-1/2579089_events.jsonl', 'r') as jsonl_file:
 with open(f'../CCT-Online-Finals-1/2578928_state.json', 'r') as json_file:
     state = json.load(json_file)
 
+# Load weapons json file
+with open(f'./assets/weapons.json', 'r') as json_file:
+    weapons = json.load(json_file)
+
 date = state["startedAt"].split("T")[0]
 format =state["format"]
+
+
+def get_weapons_img_path(df, weapons, weapons_col=["loadout.primary", "loadout.secondary"]):
+    """  """
+    for col in weapons_col:
+        img_col = [Image.open(weapons[str(val)]) for val in df[col]]
+        print(img_col)
+        df[f"{col}.img"] = img_col
+    return df
 
 
 # Data Engineering
@@ -108,7 +123,7 @@ def get_player_health_armor(event):
     return players
 
 def get_player_economy(event):
-    required_fields = ["money", "inventoryValue", "netWorth"]
+    required_fields = ["money", "inventoryValue", "netWorth", "loadout.primary", "loadout.secondary"]
     players = get_player_state(event).filter(items=(["team", "name"] + required_fields))
     return players
 
@@ -125,17 +140,15 @@ def get_loadout(event):
     return players
 
 event = json.loads(json_list[2443])["events"][-1]
-# display(get_player_health_armor(event))
-# display(get_player_economy(event))
-# display(get_player_kdao(event))
-# display(get_loadout(event))
 
 pha = get_player_health_armor(event)
 kda = get_player_kdao(event)
+economy = get_player_economy(event)
+loadout = get_loadout(event)
 
-# Dummy Variables
-team1='TeamA'
-team2='TeamB'
+# Common Variables
+team1=economy["team"].unique()[0]
+team2=economy["team"].unique()[-1]
 round_num=2
 
 event_time1 = '00:59'
@@ -169,13 +182,13 @@ components.html(
     f"""
     <div style="height:200px; background-color:#31333F;display: grid;column-gap: 30px;grid-template-columns: auto auto auto;padding: 10px;">
         <div style="text-align: right;">
-            <h3 style="color:white;font-family:courier;">{team1}</h3>
+            <h3 style="color:white;font-family:Sans-Serif;">{team1}</h3>
             <img style="height:50px;" src="https://img-cdn.hltv.org/teamlogo/Ox1eFAB6o8VM6jwgPbQuks.svg?ixlib=java-2.1.0&s=66680f6d946ff4a93bc311f3bbab8d9e" />
         </div>
 
-        <h3 style="color:white;font-size:40px;font-family:courier;text-align: center; ">2 - 0</h3>
+        <h3 style="color:white;font-size:40px;font-family:Sans-Serif;text-align: center; ">2 - 0</h3>
         <div style="text-align: left;">
-            <h3 style="color:white;font-family:courier;">{team2}</h3>
+            <h3 style="color:white;font-family:Sans-Serif;">{team2}</h3>
             <img style="height:50px;" src="https://preview.redd.it/new-forze-logo-v0-x31u5t3sg8ba1.png?width=600&format=png&auto=webp&s=041b6912e65d06e150219f63f79dc05b911e9c04" />
         </div>
     </div>
@@ -189,6 +202,41 @@ preround_tab, duringround_tab, postround_tab = st.tabs(["Pre-Round", "During Rou
 # Pre-Round Tab
 with preround_tab:
     st.header(f"Round {round_num}")
+    st.subheader("Pre-Round Economy", divider='rainbow')
+    economy = get_weapons_img_path(economy, weapons)
+
+
+    economy.rename(columns= {'name':'Player',"loadout.primary": "Primary", 
+                            "loadout.primary.img": "thumbnail",
+                            "loadout.secondary":"Secondary", 'money':'Money',
+                            "inventoryValue": "Inventory Value"}, 
+                            inplace = True)
+    
+    team1_economy = economy[economy["team"]==team1]
+    team1_total = team1_economy["Inventory Value"].sum()
+
+    team2_economy = economy[economy["team"]==team2]
+    team2_total = team2_economy["Inventory Value"].sum()
+
+    col1, col2 = st.columns([3,2])
+    with col1:
+        st.subheader(f"{team1}")
+    with col2:
+        st.write(f"Total Inventory Value: {team1_total}")
+    st.dataframe(team1_economy, 
+                column_config={
+                    "thumbnail": st.column_config.ImageColumn(
+                        "Weapon Image", help="help"
+                    )
+                },
+                hide_index=True)
+
+    col1, col2 = st.columns([3,2])
+    with col1:
+        st.subheader(f"{team2}")
+    with col2:
+        st.write(f"Total Inventory Value: {team2_total}")
+    st.dataframe(team2_economy[["Player", "Primary", "Secondary", "Inventory Value", "Money"]], hide_index=True)
 
 # During Round Tab
 with (duringround_tab):
