@@ -1,7 +1,9 @@
+from copy import deepcopy
 import json
 import pandas as pd
 from pandas.api.types import is_float_dtype
-from copy import deepcopy
+import re
+
 
 def get_series_start_date(event):
     series_start = event["seriesState"]["startedAt"].split("T")[0]
@@ -328,3 +330,65 @@ def get_loadouts(event):
     default_fields = ["^map_seq$", "^map_name$", "^team$", "^name$"]
     players = get_player_state(event, granularity="game").filter(regex="|".join(default_fields + required_fields))
     return players.tail(10).reset_index(drop=True)
+
+def get_event_log(event):
+
+    player_name_id_map = {}
+    for team in event["seriesState"]["teams"]:
+        for _player in team["players"]:
+            player_name_id_map[_player["id"]] = _player["name"]
+
+    event_type = event["type"]
+    if re.search(r"\bplayer.*killed.*player\b", event_type):
+
+        actor = player_name_id_map[event["actor"]["id"]]
+        target = player_name_id_map[event["target"]["id"]]
+        action = event["action"]
+        weapon = list(event["actor"]["stateDelta"]["series"]["weaponKills"].keys())[0]
+        round_time = event["seriesState"]["games"][-1]["clock"]["currentSeconds"]
+        minutes = int(round_time/60)
+        seconds = round_time % 60
+        round_time = f"{minutes}:{seconds:02}"
+        action_log = f"{actor} {action} {target} with {weapon}"
+        event_log = f"{minutes}:{seconds:02}     {actor} {action} {target} with {weapon}"
+        return actor, target, action, weapon, round_time, action_log, event_log
+
+    elif re.search(r"\bplayer.*completed.*\b", event_type):
+        event_type_map = {
+            "player-completed-plantBomb": {
+                "action": "planted",
+                "target": "the bomb"
+            },
+            "player-completed-defuseBomb": {
+                "action": "defused",
+                "target": "the bomb"
+            },
+            "player-completed-beginDefuseWithKit": {
+                "action": "began defusing",
+                "target": "the bomb with kit"
+            },
+            "player-completed-beginDefuseWithoutKit": {
+                "action": "began defusing",
+                "target": "the bomb without kit"
+            },
+            "player-completed-explodeBomb": {
+                "action": "exploded",
+                "target": "the bomb"
+            }
+        }
+        actor = player_name_id_map[event["actor"]["id"]]
+        target = event_type_map[event_type]["target"]
+        action = event_type_map[event_type]["action"]
+        round_time = event["seriesState"]["games"][-1]["clock"]["currentSeconds"]
+        minutes = int(round_time/60)
+        seconds = round_time % 60
+        round_time = f"{minutes}:{seconds:02}"
+        action_log = f"{actor} {action} {target}"
+        event_log = f"{minutes}:{seconds:02}     {actor} {action} {target}"
+        return round_time, action_log, event_log
+
+    else:
+        return None
+
+if __name__ == "__main__":
+    print("Loaded utils")
