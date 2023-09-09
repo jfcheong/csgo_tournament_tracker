@@ -1,42 +1,88 @@
 import streamlit as st
 import pandas as pd
-# Import classes using precise module indications. For example:
-from highcharts_core.chart import Chart
-from highcharts_core.global_options.shared_options import SharedOptions
-from highcharts_core.options import HighchartsOptions
-from highcharts_core.options.plot_options.bar import BarOptions
-from highcharts_core.options.series.bar import BarSeries
+from highcharts_excentis import Highchart
 import streamlit as st
 import streamlit.components.v1 as components
-import streamlit_highcharts as hct
 import json
 from datetime import date
 import pandas as pd
 import numpy as np
-from collections.abc import Iterable
-from highcharts import Highchart
 from utils import utils
-import plotly.express as px
 
-@st.cache_data  # 👈 Add the caching decorator
+
+@st.cache_data  
 def load_data():
+    # simultaneously tracks inventory value per round while iterating to last state for performance optimization
     with open('../CCT-Online-Finals-1/2579089_events.jsonl', 'r') as jsonl_file:
         json_list = list(jsonl_file)
+    economy_per_round = []
     for line_item in json_list:
         line_item = json.loads(line_item)
         for event in line_item["events"]:
-            event_name = event["type"]
-            if event_name == "tournament-ended-series":
-                return event
-                
-                break
+            try:
+                event_type = event["type"]
+                if event_type == 'round-ended-freezetime':
+                    game = event['seriesState']['games'][-1]
+                    round = game['segments'][-1]
+                    map_seq = int(game["sequenceNumber"])
+                    round_seq = int(round["id"].split("-")[-1])
+                    for team in game['teams']:
+                        info = {
+                            'game': map_seq,
+                            'round': round_seq,
+                            'name': team['name'],
+                            'inventoryValue': team['inventoryValue']
+                        }
+                        economy_per_round.append(info)
+                if event_type == 'tournament-ended-series':
+                    return event, economy_per_round
+            except Exception as e:
+                print(e)
+                continue
 
+
+def get_round_results(event, return_df=False):
+    round_wins = []
+    for game in event['seriesState']['games']:
+        map_seq = int(game["sequenceNumber"])
+        for round in game['segments']:
+            round_seq = int(round["id"].split("-")[-1])
+            for team in round['teams']:
+                info = {
+                    'game': map_seq,
+                    'round': round_seq,
+                    'name': team['name'],
+                    'won': team['won']
+                }
+                round_wins.append(info)
+
+    if return_df:
+        return pd.json_normalize(round_wins)
+    return round_wins
+
+
+def compute_round_type(row):
+    if row['inventoryValue'] < 5000:
+        return 'Eco'
+    elif row['inventoryValue'] < 10000:
+        return 'Light Buy'
+    elif row['inventoryValue'] < 20000:
+        return 'Half Buy'
+    else:
+        return 'Full Buy'
+
+
+def compute_econ_winrate(df):
+    df = df[['roundType', 'won']]
+    df['lost'] = ~df['won']
+    econ_win_rate = df.groupby('roundType').sum()
+    econ_win_rate['winrate'] = econ_win_rate['won'] / (econ_win_rate['won'] + econ_win_rate['lost'])
+    return econ_win_rate
 
 
 st.title("Post Series Analysis")
 
-
-event = load_data()
+event, economy = load_data()
 result = event["seriesState"]
 match_date = result["startedAt"].split("T")[0]
 
@@ -128,7 +174,7 @@ mvp_info = list(team1_df.iloc[0])
 mvp_name,mvp_kills,mvp_death,mvp_assist,mvp_adr,mvp_kdr=mvp_info[1],mvp_info[2],mvp_info[3],mvp_info[4],round(mvp_info[5],2),round(mvp_info[6],2)
 col1, col2 = st.columns([2, 3])
 with col1:
-    st.image("data:image/jpeg;base64,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")
+    st.image("data:image/jpeg;base64,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")
     
 with col2:
     st.subheader(mvp_name)
@@ -137,6 +183,68 @@ with col2:
     st.metric(label="Kills / Death / Assists", value=f"{mvp_kills} / {mvp_death} / {mvp_assist}", delta=kd_diff)
 
 st.header("Economy Winrate")
+round_wins = get_round_results(event, return_df=True)
+
+econ_df = pd.json_normalize(economy)
+econ_df['roundType'] = econ_df.apply(compute_round_type, axis=1)
+rounds_df = pd.merge(econ_df, round_wins)
+
+team_1_df = rounds_df[rounds_df['name'] == winning_team]
+team_1_econ_win_rate_df = compute_econ_winrate(team_1_df)
+team_1_econ_win_rate_df['winrate'] = team_1_econ_win_rate_df['winrate'].apply(lambda x: round(x*100,2))
+team1_winrate = list(team_1_econ_win_rate_df["winrate"])
+team_1_econ_win_rate_df.reset_index(inplace=True)
+roundType = list(team_1_econ_win_rate_df["roundType"])
+
+team_2_df = rounds_df[rounds_df['name'] == losing_team]
+team_2_econ_win_rate_df = compute_econ_winrate(team_2_df)
+team_2_econ_win_rate_df['winrate'] = team_2_econ_win_rate_df['winrate'].apply(lambda x: round(x*100,2))
+team2_winrate = list(team_2_econ_win_rate_df["winrate"])
+
+H3 = Highchart(height=400)
+h3_options = {
+	'title': {
+        'text': 'Economy Win rate'
+    },
+
+    'xAxis': {
+        'categories':roundType,
+        'title': {
+            'text': None
+        }
+    },
+    'yAxis': {
+        'min': 0,
+        'title': {
+            'text': 'Win-rate Percentage',
+            'align': 'high'
+        },
+        'labels': {
+            'overflow': 'justify'
+        }
+    },
+    'tooltip': {
+        'valueSuffix': ' %'
+    },
+    'credits': {
+        'enabled': False
+    },
+    'plotOptions': {
+        'bar': {
+            'dataLabels': {
+                'enabled': True,
+                'format': '{y}%'
+            }
+        }
+    }
+}
+
+H3.set_dict_options(h3_options)
+
+H3.add_data_set(team1_winrate, 'bar', winning_team)
+H3.add_data_set(team2_winrate, 'bar', losing_team)
+components.html(H3.htmlcontent,height=400)
+
 
 
 #building ADR charts
@@ -149,97 +257,6 @@ for num in team1_ADR:
 team2_players = list(team2_df["name"])
 team2_ADR = list(team2_df["ADR"])
 
-team1_data = []
-team2_data = []
-
-
-for i in range(len(team1_players)):
-    t1_oneplayer = {}
-    t2_oneplayer = {}
-    t1_oneplayer["name"] = team1_players[i]
-    t1_oneplayer["y"] = round(team1_ADR[i],2)
-    t2_oneplayer["name"] = team2_players[i]
-    t2_oneplayer["y"] = round(team2_ADR[i],2)
-
-    team1_data.append(t1_oneplayer)
-    team2_data.append(t2_oneplayer)
-
-team1_chart={ 'accessibility': { 'announceNewData': { 'enabled': True}},
-  'chart': {'type': 'bar'},
-  'legend': {'enabled': False},
-  'series': [ { 'colorByPoint': True,
-                'data': team1_data,
-                'name': 'ADR'}],
-  'title': { 'align': 'left',
-             'text': f"{winning_team} Players Match Average Damage Per Round (ADR)"},
-  'xAxis': {'type': 'category'},
-  'yAxis': { 'title': { 'text': 'ADR'}},
-  'plotOptions': {
-        'bar': {
-            'dataLabels': {
-                'enabled': 'true'
-            },
-            'groupPadding': 0.1
-        }
-    },
-  }
-
-team2_chart={ 'accessibility': { 'announceNewData': { 'enabled': True}},
-  'chart': {'type': 'bar'},
-  'legend': {'enabled': False},
-  'series': [ { 'colorByPoint': True,
-                'data': team2_data,
-                'name': 'ADR'}],
-  'title': { 'align': 'left',
-             'text': f"{losing_team} Players Match Average Damage Per Round (ADR)"},
-  'xAxis': {'type': 'category'},
-  'yAxis': { 'title': { 'text': 'ADR'}},
-  'plotOptions': {
-        'bar': {
-            'dataLabels': {
-                'enabled': 'true'
-            },
-            'groupPadding': 0.1
-        }
-    },
-  }
-
-#trying side by side chart
-
-
-combined_chart={ 'accessibility': { 'announceNewData': { 'enabled': True}},
-  'chart': {'type': 'bar'},
-  'legend': {'enabled': True},
-  'series': [ { 
-                'data': neg_team1_ADR,
-                'name': winning_team},
-                
-                { 
-                'data': team2_ADR,
-                'name': losing_team}],
-
-  'title': { 'align': 'left',
-             'text': "Players Match Average Damage Per Round (ADR)"},
-  'xAxis': [{'categories': team1_players,'reversed': 'false', 'labels':{'step':1},'accessibility':{'description':'losing team'}},
-            {'opposite': 'true','reversed': 'false','categories': team2_players, 'linkedTo': 0,'labels':{'step':1}, 'accessibility':{'description':'winning team'}}],
-  'yAxis': { 'title': { 'text': 'ADR'}},
-  'plotOptions': {
-        'series': {
-            'stacking': 'normal',
-            'borderRadius': '100%'
-        },
-        'bar': {
-            'dataLabels': {
-                'enabled': 'true',
-                'format':'<b>{point.y:.2f}</b> '
-            },
-            'groupPadding': 0.1
-        }
-    },
-    
-    
-  }
-
 H = Highchart(height=400)
 
 options = {
@@ -247,7 +264,7 @@ options = {
         'type': 'bar'
     },
     'title': {
-        'text': 'Players Match Average Damage Per Round (ADR)'
+        'text': 'Player Average Damage Per Round (ADR)'
     },
 
     'xAxis': [{
@@ -299,17 +316,116 @@ components.html(H.htmlcontent,height=400)
 # hct.streamlit_highcharts(combined_chart,400)
 get_kda = utils.get_player_kdao(event,"game")
 multikills_df = get_kda[["team","name","multikills"]]
-st.write(multikills_df)
+
 team1_multikills = multikills_df[multikills_df['team'] == winning_team ].drop(["team"], axis=1)
 team2_multikills = multikills_df[multikills_df['team'] == losing_team ].drop(["team"], axis=1)
 team1_multikills = team1_multikills.groupby(['name']).agg({'multikills':'sum'})
 team2_multikills = team2_multikills.groupby(['name']).agg({'multikills':'sum'})
 
-st.write(team2_multikills)
 team1_multikills.reset_index(inplace=True)
 team2_multikills.reset_index(inplace=True)
-fig2 = px.bar(data_frame = team1_multikills,y =team1_multikills['multikills'] , x =team1_multikills['name'])
-st.write(fig2)
+
+t1_multikills_players =  list(team1_multikills["name"])
+t1_multikills_kills =  list(team1_multikills["multikills"])
+
+t2_multikills_players =  list(team2_multikills["name"])
+t2_multikills_kills =  list(team2_multikills["multikills"])
+
+H1 = Highchart(height=400)
+st.subheader(f"Series Multikills - {winning_team}" )
+options = {
+	'title': {
+        'text': 'Player Multikills'
+    },
+    'subtitle': {
+        'text': 'Multikills are when a player kills 3 or more members from the opponent team'
+    },
+    'xAxis': {
+        'categories':t1_multikills_players,
+        'title': {
+            'text': None
+        }
+    },
+    'yAxis': {
+        'min': 0,
+        'title': {
+            'text': 'Number of Multikills',
+            'align': 'high'
+        },
+        'labels': {
+            'overflow': 'justify'
+        }
+    },
+    'tooltip': {
+        'valueSuffix': ' multikills'
+    },
+    'credits': {
+        'enabled': False
+    },
+    'plotOptions': {
+        'bar': {
+            'dataLabels': {
+                'enabled': True
+            }
+        }
+    }
+}
+
+H2 = Highchart(height=400)
+
+h2_options = {
+	'title': {
+        'text': 'Player Multikills'
+    },
+    'subtitle': {
+        'text': 'Multikills are when a player kills 3 or more members from the opponent team'
+    },
+    'xAxis': {
+        'categories':t2_multikills_players,
+        'title': {
+            'text': None
+        }
+    },
+    'yAxis': {
+        'min': 0,
+        'title': {
+            'text': 'Number of Multikills',
+            'align': 'high'
+        },
+        'labels': {
+            'overflow': 'justify'
+        }
+    },
+    'tooltip': {
+        'valueSuffix': ' multikills'
+    },
+
+    'credits': {
+        'enabled': False
+    },
+    'plotOptions': {
+        'bar': {
+            'dataLabels': {
+                'enabled': True
+            },
+            'color':'#434348'
+        }
+    }
+}
+
+
+H1.set_dict_options(options)
+
+H1.add_data_set(t1_multikills_kills, 'bar', winning_team)
+H2.set_dict_options(h2_options)
+
+H2.add_data_set(t2_multikills_kills, 'bar', losing_team)
+
+components.html(H1.htmlcontent,height=400)
+
+st.subheader(f"Series Multikills - {losing_team}" )
+components.html(H2.htmlcontent,height=400)
+
 st.header("Player Statistics")
 
 games_df = pd.DataFrame(result["games"])
@@ -340,8 +456,14 @@ for i in range(len(map_tabs)):
     with map_tabs[i]:
         if i==0:
             st.subheader(f"Team 1 - {winning_team}")
+            team1_df = team1_df.drop(['teams.name'], axis=1)
+            team1_df.rename(columns = {'name':'Player Name', 'kills':'Kills',
+                              'deaths':'Deaths','killAssistsGiven':'Assists'}, inplace = True)
             st.table(team1_df)
             st.subheader(f"Team 2 - {losing_team}")
+            team2_df = team2_df.drop(['teams.name'], axis=1)
+            team2_df.rename(columns = {'name':'Player Name', 'kills':'Kills',
+                              'deaths':'Deaths','killAssistsGiven':'Assists'}, inplace = True)
             st.table(team2_df)
         else:
             map_stats = team_stats_per_round[(team_stats_per_round.game_sequenceNumber==i) & ((team_stats_per_round.won==True))]
@@ -382,8 +504,12 @@ for i in range(len(map_tabs)):
 
             st.subheader(f"Team 1 - {winning_team}")
             map_team1_df = map_team1_df.sort_values(['kills'], ascending=[False]).drop(["teams.name"],axis=1)
+            map_team1_df.rename(columns = {'name':'Player Name', 'kills':'Kills',
+                              'deaths':'Deaths','killAssistsGiven':'Assists'}, inplace = True)
             st.table(map_team1_df)
 
             st.subheader(f"Team 2 - {losing_team}")
             map_team2_df = map_team2_df.sort_values(['kills'], ascending=[False]).drop(["teams.name"],axis=1)
+            map_team2_df.rename(columns = {'name':'Player Name', 'kills':'Kills',
+                              'deaths':'Deaths','killAssistsGiven':'Assists'}, inplace = True)
             st.table(map_team2_df)

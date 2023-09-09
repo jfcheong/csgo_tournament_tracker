@@ -1,0 +1,6 @@
+altair==5.1.1
+highcharts_excentis==0.4.4
+numpy==1.25.2
+pandas==2.0.3
+python_highcharts==0.4.2
+streamlit==1.25.0
