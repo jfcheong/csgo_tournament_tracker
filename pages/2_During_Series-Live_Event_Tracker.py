@@ -41,7 +41,6 @@ def get_weapons_img_path(df, weapons, weapons_col=["loadout.primary", "loadout.s
     """  """
     for col in weapons_col:
         img_col = [Image.open(weapons[str(val)]) for val in df[col]]
-        print(img_col)
         df[f"{col}.img"] = img_col
     return df
 
@@ -203,6 +202,9 @@ preround_tab, duringround_tab, postround_tab = st.tabs(["Pre-Round", "During Rou
 with preround_tab:
     st.header(f"Round {round_num}")
     st.subheader("Pre-Round Economy", divider='rainbow')
+
+    # Format economy df
+    economy["Items"] = loadout.loc[:, loadout.columns.str.startswith('loadout.')].values.tolist()
     economy = get_weapons_img_path(economy, weapons)
 
 
@@ -211,13 +213,15 @@ with preround_tab:
                             "loadout.secondary":"Secondary", 'money':'Money',
                             "inventoryValue": "Inventory Value"}, 
                             inplace = True)
-    
+
+    # Split df by team
     team1_economy = economy[economy["team"]==team1]
     team1_total = team1_economy["Inventory Value"].sum()
 
     team2_economy = economy[economy["team"]==team2]
     team2_total = team2_economy["Inventory Value"].sum()
 
+    # Display
     col1, col2 = st.columns([3,2])
     with col1:
         st.subheader(f"{team1}")
