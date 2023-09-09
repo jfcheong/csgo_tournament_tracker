@@ -1,25 +1,16 @@
 import streamlit as st
 import pandas as pd
-# Import classes using precise module indications. For example:
-from highcharts_core.chart import Chart
-from highcharts_core.global_options.shared_options import SharedOptions
-from highcharts_core.options import HighchartsOptions
-from highcharts_core.options.plot_options.bar import BarOptions
-from highcharts_core.options.series.bar import BarSeries
+from highcharts_excentis import Highchart
 import streamlit as st
 import streamlit.components.v1 as components
-import streamlit_highcharts as hct
 import json
 from datetime import date
 import pandas as pd
 import numpy as np
-from collections.abc import Iterable
-from highcharts import Highchart
 from utils import utils
-import plotly.express as px
 
 
-@st.cache_data  # 👈 Add the caching decorator
+@st.cache_data  
 def load_data():
     # simultaneously tracks inventory value per round while iterating to last state for performance optimization
     with open('../CCT-Online-Finals-1/2579089_events.jsonl', 'r') as jsonl_file:
