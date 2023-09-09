@@ -204,7 +204,10 @@ with preround_tab:
     st.subheader("Pre-Round Economy", divider='rainbow')
 
     # Format economy df
-    economy["Items"] = loadout.loc[:, loadout.columns.str.startswith('loadout.')].values.tolist()
+    items = loadout.loc[:, loadout.columns.str.startswith('loadout.')].values.tolist()
+    economy["Items"] = [cleaned if (cleaned := [elem for elem in sublist 
+                                                    if elem is not None])
+                        else [None] for sublist in items]
     economy = get_weapons_img_path(economy, weapons)
 
 
@@ -240,7 +243,13 @@ with preround_tab:
         st.subheader(f"{team2}")
     with col2:
         st.write(f"Total Inventory Value: {team2_total}")
-    st.dataframe(team2_economy[["Player", "Primary", "Secondary", "Inventory Value", "Money"]], hide_index=True)
+    st.dataframe(team2_economy, 
+                column_config={
+                    "thumbnail": st.column_config.ImageColumn(
+                        "Weapon Image", help="help"
+                    )
+                },
+                hide_index=True)
 
 # During Round Tab
 with (duringround_tab):
