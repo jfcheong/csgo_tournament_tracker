@@ -65,6 +65,14 @@ for i in range(4, len(full_events)-1):
     if loaded_events["events"][-1]["id"] in r2_eid_list:
         r2_events_list.append(loaded_events)
 
+primary = ['mag7','nova','xm1014','mac10','mp9','ak47','aug','famas','galilar','m4a1','m4a1_silencer','ssg08','awp','m249','negev','scar20','g3sg1','sg553','ppbizon','mp7','ump45','p90','mp5_silencer','sawedoff']
+secondary = ['hkp2000','cz75a','deagle','fiveseven','glock','p250','tec9','usp_silencer', 'elite', 'revolver']
+melee = ['knife','knife_t']
+
+all_weapons = ["mag7", "nova", "xm1014", "mac10", "mp9", "ak47", "aug", "famas", "galilar", "m4a1", "m4a1_silencer", "ssg08", "awp", "m249", "negev", "scar20", "g3sg1", "sg553", "ppbizon", "mp7", "ump45", "p90", "mp5_silencer", "sawedoff", "hkp2000", "cz75a", "deagle", "fiveseven", "glock", "p250", "tec9", "usp_silencer", "elite", "revolver", "knife", "knife_t"]
+all_weapons_url = ["https://drive.google.com/uc?export=view&id=1TYwFThhXuwl4loAL23h3TYudsPFAB6wG", "https://drive.google.com/uc?export=view&id=1TzSoDC8qoePLn9BY8JkBGWuFkXfj9LYb", "https://drive.google.com/uc?export=view&id=1VGoZbAwa8j8v6YvDlTzXv-e2cc6-I7QN/view?usp=sharing", "https://drive.google.com/uc?export=view&id=16nSK03F4OVcfUrtTvPcQG5ZLZ4vx6-wG", "https://drive.google.com/uc?export=view&id=1-bNHjjeFZr9cPTQ0dRxmpF--RA8wM2k-", "https://drive.google.com/uc?export=view&id=1wXXNUghdmk-Z5zHcfLo_R17jS0vjEgX0", "https://drive.google.com/uc?export=view&id=19VudK8bk9ILrtR5GxUanhT569Mdn--Uo", "https://drive.google.com/uc?export=view&id=19FCk0PvrXjRDMuohrEKhEmL4qb_glKc9", "https://drive.google.com/uc?export=view&id=19Q8-gM1x1XMY-CBXoJGHDkeDxpSmV9Q2", "https://drive.google.com/uc?export=view&id=1bemYjPcgAklZUSSDWpwucN_IbSejBazX", "https://drive.google.com/uc?export=view&id=1ee4uA887OqwiYx6SM-uuMeHccGOYAMJX", "https://drive.google.com/uc?export=view&id=1_nNCLtXccij1rd9VZbx2QSSO7m1OCUMW", "https://drive.google.com/uc?export=view&id=1pmrxVQvIxN3BlQMdB6_3AiHdg6Rhc_4T", "https://drive.google.com/uc?export=view&id=1elHN1KEuyI0QwqZbDC1fkeWr7auhYf3h", "https://drive.google.com/uc?export=view&id=1tWjoczrhGyhwENXBpxZ7O-_OufVxPT0e", "https://drive.google.com/uc?export=view&id=1ycR8w8gbw2lOUy1gFhrEizzn75fDO6tn", "https://drive.google.com/uc?export=view&id=1IRutvTpczBbHYm8DCeQP7a0d3hMuN9lZ", "https://drive.google.com/uc?export=view&id=18nk-5PcL_ABDlYjXglhm-R9_0avMh98f", "https://drive.google.com/uc?export=view&id=14WytS4VfGRxZm_d5cqfR8AZ-SxpWPE6i", "https://drive.google.com/uc?export=view&id=1tMGhG61oLDiOa2u_a2UsDOA50aagprBq", "https://drive.google.com/uc?export=view&id=1Y84_Mcp-t-RgVP5fLI0KVPsIZNlCYYLd", "https://drive.google.com/uc?export=view&id=14e-YQhcPTajsolMR3GIIOEHVM164L7SA", "https://drive.google.com/uc?export=view&id=1zCjIZ7cJ7_NW1ArQX1-8DLCjM3x43Ar5", "https://drive.google.com/uc?export=view&id=1oYgGvY8RyviQ5zhe4AoEdxUohFkJLBPS", "https://drive.google.com/uc?export=view&id=1Wy8RlSmKPP53t6jjrglFu-WmTG47k-4w", "https://drive.google.com/uc?export=view&id=1wj5wWAmAUGl349gyLVKjjFedBnDU6SPD", "https://drive.google.com/uc?export=view&id=1d3RfyfITMwq7aNtkgC86HS2ZtdXQbb1L", "https://drive.google.com/uc?export=view&id=18IDDh2iF4mUMhr0pVU-qdJaZSjJKHcOr", "https://drive.google.com/uc?export=view&id=1OB67qm_fFOailqianmj3-thghFwHVKKF", "https://drive.google.com/uc?export=view&id=1-yVlvPxdzk9Cxt1qM6LNsix1NqO4-7lj", "https://drive.google.com/uc?export=view&id=1cT16kX_t-vnkzqXqMivtW9Y3xNf26kQT", "https://drive.google.com/uc?export=view&id=1EkJSBiFtu-1TQrMo_9myBAgU2kJDcwcF", "https://drive.google.com/uc?export=view&id=1E8_HAVSMDbL4fKfdZ1qKNX__kIAuaQtl", "https://drive.google.com/uc?export=view&id=1scG9H9uaFDhVwfysSTrlrxh941al7ZeF", "https://drive.google.com/uc?export=view&id=1f_NHYPBLgHNC-KJbx8XD9igoai1BbJ8M", "https://drive.google.com/uc?export=view&id=1KH5UBZsKzkwjTO-AXkeuQjxcNMQIn32N"]
+weapons_dict = dict(zip(all_weapons, all_weapons_url))
+
 def get_match_result(state_dict, key):
     teams = state_dict['teams']
     result_dict = {}
@@ -80,7 +88,6 @@ final_teams = list(match_result.keys())
 
 forze_url = "https://preview.redd.it/new-forze-logo-v0-x31u5t3sg8ba1.png?width=600&format=png&auto=webp&s=041b6912e65d06e150219f63f79dc05b911e9c04"
 ecstatic_url = "https://img-cdn.hltv.org/teamlogo/Ox1eFAB6o8VM6jwgPbQuks.svg?ixlib=java-2.1.0&s=66680f6d946ff4a93bc311f3bbab8d9e"
-
 
 # Streamlit Visuals
 ## Top Header Section
@@ -116,12 +123,13 @@ with preround_tab:
 
 ### During Round Tab
 with duringround_tab:
-    pha = utils.get_player_health_armor(r2_events_list[0]["events"][-1])
-    kda = utils.get_player_kdao(r2_events_list[0]["events"][-1], 'game')
-    gti = utils.get_team_info(r2_events_list[0]["events"][-1], 'round')
-    ps = utils.get_player_state(r2_events_list[0]["events"][-1], 'game')
-    lo = utils.get_loadouts(r2_events_list[0]["events"][-1])
-    gti_latest_round = gti.loc[gti['round_seq'] == int(round_num)].reset_index()
+    selected_event = r2_events_list[0]["events"][-1]
+    pha = utils.get_player_health_armor(selected_event)
+    kda = utils.get_player_kdao(selected_event, 'game')
+    gti = utils.get_team_info(selected_event, 'round')
+    ps = utils.get_player_state(selected_event, 'game')
+    lo = utils.get_loadouts(selected_event)
+    gti_latest_round = gti.loc[gti['round_seq'] == int(round_num)].reset_index(drop=True)
 
     def get_player_kda(kda_df, latest_round_df, player_df, index):
         kda_filtered = kda_df.loc[(kda_df['name'] == player_df.loc[index, 'name']) & (
@@ -135,32 +143,37 @@ with duringround_tab:
         st.subheader("Kills", divider='rainbow')
 
         kill_log_list = []
-        # for line in full_events[:1000]:
-        #     content = json.loads(line)
-        #     for event in content["events"]:
-        #         if event["type"] == "player-killed-player":
-        #             event_str = utils.get_event_log(event)[-1]
-        #             kill_list = [event_str]
-        #             kill_log_list.append(kill_list)
-        for event in r2_events_list:
-            if event["events"][-1]["type"] == "player-killed-player":
-                actor, target, action, weapon, round_time, action_log, event_log = utils.get_event_log(event["events"][-1])
-                kill_list = [round_time, actor, weapon, target]
-                kill_log_list.append(kill_list)
+        # for event in r2_events_list:
+        #     if event["events"][-1]["type"] == "player-killed-player":
+        #         actor, target, action, weapon, round_time, action_log, event_log = utils.get_event_log(event["events"][-1])
+        #         kill_list = [round_time, actor, weapon, target]
+        #         kill_log_list.append(kill_list)
+
+        if selected_event["type"] == "player-killed-player":
+            actor, target, action, weapon, round_time, action_log, event_log = utils.get_event_log(selected_event)
+            kill_list = [round_time, actor, weapon, target]
+            kill_log_list.append(kill_list)
 
         kill_log_list.sort(reverse=True)
         kills_df = pd.DataFrame(kill_log_list, columns=['round_time', 'actor', 'weapon', 'target'])
-        st.dataframe(kills_df, hide_index=True, use_container_width=True)
+        kills_df['weapon'] = kills_df['weapon'].map(weapons_dict)
+        st.dataframe(kills_df, column_config={"weapon": st.column_config.ImageColumn(label="weapon", width='small')},
+                     hide_index=True, use_container_width=True)
 
     with col2:
         st.subheader("Objectives", divider='rainbow')
 
         obj_log_list = []
-        for event in r2_events_list:
-            if re.search(r"\bplayer.*completed.*\b", event["events"][-1]["type"]):
-                round_time, action_log, event_log = utils.get_event_log(event["events"][-1])
-                obj_list = [event_log]
-                obj_log_list.append(obj_list)
+        # for event in r2_events_list:
+        #     if re.search(r"\bplayer.*completed.*\b", event["events"][-1]["type"]):
+        #         round_time, action_log, event_log = utils.get_event_log(event["events"][-1])
+        #         obj_list = [event_log]
+        #         obj_log_list.append(obj_list)
+
+        if re.search(r"\bplayer.*completed.*\b", selected_event["type"]):
+            round_time, action_log, event_log = utils.get_event_log(selected_event)
+            obj_list = [event_log]
+            obj_log_list.append(obj_list)
 
         obj_log_list.sort(reverse=True)
         obj_df = pd.DataFrame(obj_log_list, columns=['objective_log'])
@@ -169,48 +182,97 @@ with duringround_tab:
     # Players' Info Section
     st.subheader("Players' Info", divider='rainbow')
     col_t, col_ct = st.columns(2)
-    colors = ['#999999', '#52c222']
+    colors = ['#edb5b5', '#52c222']
+    components.html("""
+    <div style="text-align: center;">
+            <h6 style="color:black;font-family: Cambria, Georgia, serif;">Legend</h6>
+            <img style="height:50px;" src="https://drive.google.com/uc?export=view&id=13PSGt16GwmH4SxLK1vJEObH2i6OL3W7Z" />
+        </div>
+    """)
 
     with (col_t):
         st.markdown("#### Terrorists")
         team_t = gti_latest_round.loc[gti_latest_round['side'] == 'terrorists', 'name'].values[0]
         st.markdown(f"##### Team: {team_t}")
-        pha_filtered = pha.loc[pha['team'] == team_t].reset_index()
+        pha_filtered = pha.loc[pha['team'] == team_t].reset_index(drop=True)
         df_t = pha_filtered.set_index('name')
         df_t = pha_filtered.pivot(index="name", columns="team", values=['currentHealth', 'currentArmor']).reset_index()
         bar_chart_day = alt.Chart(df_t).transform_fold(['currentHealth', 'currentArmor']) \
-            .mark_bar(clip=True).encode(x=alt.X('value:Q', stack='zero', scale=alt.Scale(domain=(0, 100)), title=''),
+            .mark_bar(clip=True).encode(x=alt.X('value:Q', stack='zero', scale=alt.Scale(domain=(0, 200)), title=''),
                                         y=alt.Y('name', title=''),
                                         color=alt.Color('key:N').legend(None),
                                         ).properties(width=300, height=200
                                                      ).repeat(layer=["currentHealth", "currentArmor"]
                                                               ).configure_range(category=alt.RangeScheme(colors))
         bar_chart_day
-        st.table(df_t)
+        # st.table(pha_filtered)
+        # st.table(df_t)
+        # TODO: fix
+        # pha_filtered_player = pha_filtered.loc[pha_filtered['name'] == 'Jerry', ['currentHealth', 'currentArmor']]
+        # st.table(pha_filtered_player)
+
         for i in range(len(pha_filtered)):
+            lo_filtered = lo.loc[(lo['team'] == team_t) & (lo['name'] == pha_filtered.loc[i, 'name'])].filter(like='loadout').reset_index(drop=True)
+            lo_mapped = lo_filtered[['loadout.primary', 'loadout.secondary', 'loadout.melee']].applymap(weapons_dict.get).rename(columns={'loadout.primary': 'Primary', 'loadout.secondary': 'Secondary', 'loadout.melee': 'Melee'})
             st.markdown(f"##### Player {i+1}: {pha_filtered.loc[i, 'name']} ({get_player_kda(kda, gti_latest_round, pha_filtered, i)})")
+            st.dataframe(lo_mapped, column_config={
+                "Primary": st.column_config.ImageColumn(label="Primary", width='small'),
+                "Secondary": st.column_config.ImageColumn(label="Secondary", width='small'),
+                "Melee": st.column_config.ImageColumn(label="Melee", width='small'),
+                # "loadout.helm": st.column_config.ImageColumn(label="loadout.helm", width='medium'),
+                # "loadout.kevlarVest": st.column_config.ImageColumn(label="loadout.kevlarVest", width='medium'),
+                # "loadout.bomb": st.column_config.ImageColumn(label="loadout.bomb", width='medium'),
+                # "loadout.defuser": st.column_config.ImageColumn(label="loadout.defuser", width='medium'),
+                # "loadout.decoy": st.column_config.ImageColumn(label="loadout.decoy", width='medium'),
+                # "loadout.flashbang": st.column_config.ImageColumn(label="loadout.flashbang", width='medium'),
+                # "loadout.hegrenade": st.column_config.ImageColumn(label="loadout.hegrenade", width='medium'),
+                # "loadout.incgrenade": st.column_config.ImageColumn(label="loadout.incgrenade", width='medium'),
+                # "loadout.molotov": st.column_config.ImageColumn(label="loadout.molotov", width='medium'),
+                # "loadout.smokeGrenade": st.column_config.ImageColumn(label="loadout.smokeGrenade", width='medium'),
+                # "loadout.taser": st.column_config.ImageColumn(label="loadout.taser", width='medium')
+            }, hide_index=True)
 
     with (col_ct):
         st.markdown("#### Counter Terrorists")
         team_ct = gti_latest_round.loc[gti_latest_round['side'] == 'counter-terrorists', 'name'].values[0]
         st.markdown(f"##### Team: {team_ct}")
-        pha_filtered = pha.loc[pha['team'] == team_ct].reset_index()
-        df_t = pha_filtered.set_index('name')
-        df_t = pha_filtered.pivot(index="name", columns="team", values=['currentHealth', 'currentArmor']).reset_index()
-        bar_chart_day = alt.Chart(df_t).transform_fold(['currentHealth', 'currentArmor']) \
-            .mark_bar(clip=True).encode(x=alt.X('value:Q', stack='zero', scale=alt.Scale(domain=(0, 100)), title=''),
+        pha_filtered = pha.loc[pha['team'] == team_ct].reset_index(drop=True)
+        df_ct = pha_filtered.set_index('name')
+        df_ct = pha_filtered.pivot(index="name", columns="team", values=['currentHealth', 'currentArmor']).reset_index()
+        bar_chart_day = alt.Chart(df_ct).transform_fold(['currentHealth', 'currentArmor']) \
+            .mark_bar(clip=True).encode(x=alt.X('value:Q', stack='zero', scale=alt.Scale(domain=(0, 200)), title=''),
                                         y=alt.Y('name', title=''),
                                         color=alt.Color('key:N').legend(None),
                                         ).properties(width=300, height=200
                                                      ).repeat(layer=["currentHealth", "currentArmor"]
                                                               ).configure_range(category=alt.RangeScheme(colors))
         bar_chart_day
-        st.table(df_t)
+        # st.table(pha_filtered)
+        # st.table(df_ct)
         for i in range(len(pha_filtered)):
+            lo_filtered = lo.loc[(lo['team'] == team_ct) & (lo['name'] == pha_filtered.loc[i, 'name'])].filter(like='loadout').reset_index(drop=True)
+            lo_mapped = lo_filtered[['loadout.primary', 'loadout.secondary', 'loadout.melee']].applymap(weapons_dict.get).rename(columns={'loadout.primary': 'Primary', 'loadout.secondary': 'Secondary', 'loadout.melee': 'Melee'})
             st.markdown(f"##### Player {i+1}: {pha_filtered.loc[i, 'name']} ({get_player_kda(kda, gti_latest_round, pha_filtered, i)})")
+            st.dataframe(lo_mapped, column_config={
+                "Primary": st.column_config.ImageColumn(label="Primary", width='small'),
+                "Secondary": st.column_config.ImageColumn(label="Secondary", width='small'),
+                "Melee": st.column_config.ImageColumn(label="Melee", width='small'),
+                # "loadout.helm": st.column_config.ImageColumn(label="loadout.helm", width='medium'),
+                # "loadout.kevlarVest": st.column_config.ImageColumn(label="loadout.kevlarVest", width='medium'),
+                # "loadout.bomb": st.column_config.ImageColumn(label="loadout.bomb", width='medium'),
+                # "loadout.defuser": st.column_config.ImageColumn(label="loadout.defuser", width='medium'),
+                # "loadout.decoy": st.column_config.ImageColumn(label="loadout.decoy", width='medium'),
+                # "loadout.flashbang": st.column_config.ImageColumn(label="loadout.flashbang", width='medium'),
+                # "loadout.hegrenade": st.column_config.ImageColumn(label="loadout.hegrenade", width='medium'),
+                # "loadout.incgrenade": st.column_config.ImageColumn(label="loadout.incgrenade", width='medium'),
+                # "loadout.molotov": st.column_config.ImageColumn(label="loadout.molotov", width='medium'),
+                # "loadout.smokeGrenade": st.column_config.ImageColumn(label="loadout.smokeGrenade", width='medium'),
+                # "loadout.taser": st.column_config.ImageColumn(label="loadout.taser", width='medium')
+            }, hide_index=True)
 
-    st.table(ps)
-    st.table(lo)
+    # st.table(ps)
+    # st.table(lo)
+
     # # Dummy Variables
     # team1='TeamA'
     # team2='TeamB'
