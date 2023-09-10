@@ -99,12 +99,12 @@ components.html(
     f"""
     <div style="height:200px; background-color:#F0F2F6;display: grid;column-gap: 2%;grid-template-columns: auto auto;padding: 10px;">
         <div style="text-align: center;">
-            <h3 style="color:black;font-family: Cambria, Georgia, serif;">{final_teams[0]}</h3>
+            <h3 style="color:black;font-family:Segoe UI, Arial, sans-serif">{final_teams[0]}</h3>
             <img style="height:50px;" src="{ecstatic_url}" />
         </div>
         
         <div style="text-align: center;">
-            <h3 style="color:black;">{final_teams[1]}</h3>
+            <h3 style="color:black;font-family:Segoe UI, Arial, sans-serif">{final_teams[1]}</h3>
             <img style="height:50px;" src="{forze_url}" />
         </div>
     </div>
@@ -133,19 +133,19 @@ with col1:
     components.html(
     f"""
     <div style="padding-bottom:10px;text-align:center">
-            <h3 style="color:black;font-family: Cambria, Georgia, serif;">{relevant_team} <img style="height:50px;" src="{ecstatic_url}" /></h3> 
+            <h3 style="color:black;font-family:Segoe UI, Arial, sans-serif">{relevant_team} <img style="height:50px;" src="{ecstatic_url}" /></h3> 
         </div>
     <div style="height:200px; background-color:#F0F2F6;display: grid;column-gap: 30px;grid-template-columns: auto auto auto;padding: 10px;">
         <div style="text-align: center;">
-            <h3 style="color:black;font-family: Cambria, Georgia, serif;">{list(col1_match_score)[0]}</h3>
+            <h3 style="color:black;font-family:Segoe UI, Arial, sans-serif">{list(col1_match_score)[0]}</h3>
         </div>
 
         <div style="text-align: left;">
-            <p style="font-size:40px;color:black;font-family: Cambria, Georgia, serif;">{col1_match_score[list(col1_match_score)[0]]} - {col1_match_score[list(col1_match_score)[1]]}</p>
+            <p style="font-size:40px;color:black;font-family:Segoe UI, Arial, sans-serif">{col1_match_score[list(col1_match_score)[0]]} - {col1_match_score[list(col1_match_score)[1]]}</p>
         </div>
         
         <div style="text-align: center;">
-            <h3 style="color:black;">{list(col1_match_score)[1]}</h3>
+            <h3 style="color:black;Segoe UI, Arial, sans-serif">{list(col1_match_score)[1]}</h3>
         </div>
     </div>
 	
@@ -230,20 +230,20 @@ with col2:
     components.html(
     f"""
     <div style="padding-bottom:10px; text-align:center">
-            <h3 style="color:black;font-family: Cambria, Georgia, serif;">{relevant_team}  <img style="height:50px;" src="{forze_url}" /></h3>
+            <h3 style="color:black; font-family: Segoe UI, Arial, sans-serif;">{relevant_team}  <img style="height:50px;" src="{forze_url}" /></h3>
         
         </div>
     <div style="height:200px; background-color:#F0F2F6;display: grid;column-gap: 30px;grid-template-columns: auto auto auto;padding: 10px;">
         <div style="text-align: center;">
-            <h3 style="color:black;font-family: Cambria, Georgia, serif;">{list(col2_match_score)[0]}</h3>
+            <h3 style="color:black;font-family:Segoe UI, Arial, sans-serif;">{list(col2_match_score)[0]}</h3>
         </div>
 
         <div style="text-align: center;">
-            <p style="font-size:40px;color:black;font-family: Cambria, Georgia, serif;">{col2_match_score[list(col2_match_score)[0]]} - {col2_match_score[list(col2_match_score)[1]]}</p>
+            <p style="font-size:40px;color:black;font-family:Segoe UI, Arial, sans-serif;">{col2_match_score[list(col2_match_score)[0]]} - {col2_match_score[list(col2_match_score)[1]]}</p>
         </div>
         
         <div style="text-align: center;">
-            <h3 style="color:black;">{list(col2_match_score)[1]}</h3>
+            <h3 style="color:black;font-family:Segoe UI, Arial, sans-serif;">{list(col2_match_score)[1]}</h3>
         </div>
     </div>
 	
