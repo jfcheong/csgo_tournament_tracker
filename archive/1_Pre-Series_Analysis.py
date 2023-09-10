@@ -1,15 +1,21 @@
 import streamlit as st
 import pandas as pd
+# Import classes using precise module indications. For example:
+from highcharts_core.chart import Chart
+from highcharts_core.global_options.shared_options import SharedOptions
+from highcharts_core.options import HighchartsOptions
+from highcharts_core.options.plot_options.bar import BarOptions
+from highcharts_core.options.series.bar import BarSeries
 import streamlit as st
 import streamlit.components.v1 as components
+import streamlit_highcharts as hct
 import json
 from datetime import date
 import pandas as pd
 import numpy as np
-from highcharts_excentis import Highchart
+from collections.abc import Iterable
+from highcharts import Highchart
 
-st.set_page_config(page_title="CSGO Pre-Series Analysis", page_icon=":gun:", 
-    layout="wide", initial_sidebar_state="auto", menu_items=None)
 
 st.title("Upcoming Series")
 
@@ -100,12 +106,12 @@ components.html(
     f"""
     <div style="height:200px; background-color:#F0F2F6;display: grid;column-gap: 2%;grid-template-columns: auto auto;padding: 10px;">
         <div style="text-align: center;">
-            <h3 style="color:black;font-family:Segoe UI, Arial, sans-serif">{final_teams[0]}</h3>
+            <h3 style="color:black;font-family:Source Sans Pro;">{final_teams[0]}</h3>
             <img style="height:50px;" src="{ecstatic_url}" />
         </div>
         
         <div style="text-align: center;">
-            <h3 style="color:black;font-family:Segoe UI, Arial, sans-serif">{final_teams[1]}</h3>
+            <h3 style="color:black;">{final_teams[1]}</h3>
             <img style="height:50px;" src="{forze_url}" />
         </div>
     </div>
@@ -133,20 +139,20 @@ with col1:
 
     components.html(
     f"""
-    <div style="padding-bottom:10px;text-align:center">
-            <h3 style="color:black;font-family:Segoe UI, Arial, sans-serif">{relevant_team} <img style="height:50px;" src="{ecstatic_url}" /></h3> 
+    <div style="padding-bottom:10px">
+            <h3 style="color:black;font-family:Source Sans Pro;">{relevant_team} <img style="height:50px;" src="{ecstatic_url}" /></h3> 
         </div>
     <div style="height:200px; background-color:#F0F2F6;display: grid;column-gap: 30px;grid-template-columns: auto auto auto;padding: 10px;">
         <div style="text-align: center;">
-            <h3 style="color:black;font-family:Segoe UI, Arial, sans-serif">{list(col1_match_score)[0]}</h3>
+            <h3 style="color:black;font-family:Source Sans Pro;">{list(col1_match_score)[0]}</h3>
         </div>
 
         <div style="text-align: left;">
-            <p style="font-size:40px;color:black;font-family:Segoe UI, Arial, sans-serif">{col1_match_score[list(col1_match_score)[0]]} - {col1_match_score[list(col1_match_score)[1]]}</p>
+            <p style="font-size:40px;color:black;font-family:Source Sans Pro;">{col1_match_score[list(col1_match_score)[0]]} - {col1_match_score[list(col1_match_score)[1]]}</p>
         </div>
         
         <div style="text-align: center;">
-            <h3 style="color:black;Segoe UI, Arial, sans-serif">{list(col1_match_score)[1]}</h3>
+            <h3 style="color:black;">{list(col1_match_score)[1]}</h3>
         </div>
     </div>
 	
@@ -178,7 +184,7 @@ with col1:
             'inverted': 'false'
         },
         'title': {
-            'text': 'Player Kill Death Assist Ratio (KDR)'
+            'text': 'Player Kill Death Ratio (KDR)'
         },
         'xAxis': {
             'categories': player_name,
@@ -205,8 +211,7 @@ with col1:
             'bar': {
                 'dataLabels': {
                     'enabled': True
-                },
-                'color':'#434348'
+                }
             }
         }
     }
@@ -230,26 +235,31 @@ with col2:
 
     components.html(
     f"""
-    <div style="padding-bottom:10px; text-align:center">
-            <h3 style="color:black; font-family: Segoe UI, Arial, sans-serif;">{relevant_team}  <img style="height:50px;" src="{forze_url}" /></h3>
+    <div style="padding-bottom:10px">
+            <h3 style="color:black;font-family:Source Sans Pro;">{relevant_team}  <img style="height:50px;" src="{forze_url}" /></h3>
         
         </div>
     <div style="height:200px; background-color:#F0F2F6;display: grid;column-gap: 30px;grid-template-columns: auto auto auto;padding: 10px;">
         <div style="text-align: center;">
-            <h3 style="color:black;font-family:Segoe UI, Arial, sans-serif;">{list(col2_match_score)[0]}</h3>
+            <h3 style="color:black;font-family:Source Sans Pro;">{list(col2_match_score)[0]}</h3>
         </div>
 
         <div style="text-align: center;">
-            <p style="font-size:40px;color:black;font-family:Segoe UI, Arial, sans-serif;">{col2_match_score[list(col2_match_score)[0]]} - {col2_match_score[list(col2_match_score)[1]]}</p>
+            <p style="font-size:40px;color:black;font-family:Source Sans Pro;">{col2_match_score[list(col2_match_score)[0]]} - {col2_match_score[list(col2_match_score)[1]]}</p>
         </div>
         
         <div style="text-align: center;">
-            <h3 style="color:black;font-family:Segoe UI, Arial, sans-serif;">{list(col2_match_score)[1]}</h3>
+            <h3 style="color:black;">{list(col2_match_score)[1]}</h3>
         </div>
     </div>
 	
     """
     ,height=250)
+    
+    st.subheader("Players")
+    #retrieve the list of teams in semi finals match and identify the team that has entered finals with player KDR info
+    teams = list(match_result.keys())
+    team1 = list(set(teams) & set(final_teams))[0]
 
     kills = get_match_result_per_player(semifinals_file1, key='kills')
     assists = get_match_result_per_player(semifinals_file1, key='killAssistsGiven')
@@ -257,17 +267,14 @@ with col2:
 
     sum_of_kd = {}
     kdr={}
-    for key, value in kills[relevant_team].items():
-        sum_of_kd[key] = value + assists[relevant_team][key]
+    for key, value in kills[team1].items():
+        sum_of_kd[key] = value + assists[team1][key]
 
     for key, value in sum_of_kd.items():
-        kdr[key] = round(value / death[relevant_team][key],2)
+        kdr[key] = round(value / death[team1][key],2)
 
     player_kdr = list(kdr.values())
     player_name = list(kdr.keys())
-
-    
-    st.subheader("Players")
 
     # plotting the bar charts
 
@@ -277,7 +284,7 @@ with col2:
             'inverted': 'false'
         },
         'title': {
-            'text': 'Player Kill Death Assist Ratio (KDR)'
+            'text': 'Player Kill Death Ratio (KDR)'
         },
         'xAxis': {
             'categories': player_name,
@@ -304,8 +311,7 @@ with col2:
             'bar': {
                 'dataLabels': {
                     'enabled': True
-                },
-                
+                }
             }
         }
     }
