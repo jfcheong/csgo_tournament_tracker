@@ -224,6 +224,7 @@ for event_num in range(len(r2_events_list)):
     # Format economy df
     economy["Equipment"] = utils.format_items(lo)
     economy = utils.get_weapons_img_path(economy)
+    print(economy[["loadout.primary.img"]])
 
     # Split df by team
     team1_economy = economy[economy["team"]==team1][display_cols]
@@ -302,7 +303,7 @@ for event_num in range(len(r2_events_list)):
             kill_log_list.sort(reverse=True)
             kills_df = pd.DataFrame(kill_log_list, columns=['round_time', 'actor', 'weapon', 'target'])
             kills_df = utils.get_weapons_img_path(kills_df, ["weapon"])
-            st.dataframe(kills_df, column_config={"weapon": st.column_config.ImageColumn(label="weapon", width='small')},
+            st.dataframe(kills_df, column_config={"weapon.img": st.column_config.ImageColumn(label="weapon", width='small')},
                          hide_index=True, use_container_width=True)
 
         with col2:
@@ -348,7 +349,7 @@ for event_num in range(len(r2_events_list)):
 
             for i in range(len(pha_filtered)):
                 lo_filtered = lo.loc[(lo['team'] == team_t) & (lo['name'] == pha_filtered.loc[i, 'name'])].filter(like='loadout').reset_index(drop=True)
-                lo_mapped = utils.get_weapons_img_path(lo_filtered, ['loadout.primary', 'loadout.secondary', 'loadout.melee']).rename(columns={'loadout.primary': 'Primary', 'loadout.secondary': 'Secondary', 'loadout.melee': 'Melee'})
+                lo_mapped = utils.get_weapons_img_path(lo_filtered, ['loadout.primary', 'loadout.secondary', 'loadout.melee']).rename(columns={'loadout.primary.img': 'Primary', 'loadout.secondary.img': 'Secondary', 'loadout.melee.img': 'Melee'})
                 st.markdown(f"##### Player {i+1}: {pha_filtered.loc[i, 'name']} ({utils.get_player_kda(kda, gti_latest_round, pha_filtered, i)})")
                 st.dataframe(lo_mapped, column_config={
                     "Primary": st.column_config.ImageColumn(label="Primary", width='small'),
@@ -373,7 +374,7 @@ for event_num in range(len(r2_events_list)):
             bar_chart_day
             for i in range(len(pha_filtered)):
                 lo_filtered = lo.loc[(lo['team'] == team_ct) & (lo['name'] == pha_filtered.loc[i, 'name'])].filter(like='loadout').reset_index(drop=True)
-                lo_mapped = utils.get_weapons_img_path(lo_filtered, ['loadout.primary', 'loadout.secondary', 'loadout.melee']).rename(columns={'loadout.primary': 'Primary', 'loadout.secondary': 'Secondary', 'loadout.melee': 'Melee'})
+                lo_mapped = utils.get_weapons_img_path(lo_filtered, ['loadout.primary', 'loadout.secondary', 'loadout.melee']).rename(columns={'loadout.primary.img': 'Primary', 'loadout.secondary.img': 'Secondary', 'loadout.melee.img': 'Melee'})
                 st.markdown(f"##### Player {i+1}: {pha_filtered.loc[i, 'name']} ({utils.get_player_kda(kda, gti_latest_round, pha_filtered, i)})")
                 st.dataframe(lo_mapped, column_config={
                     "Primary": st.column_config.ImageColumn(label="Primary", width='small'),

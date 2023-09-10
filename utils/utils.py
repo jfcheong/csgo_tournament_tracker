@@ -4,7 +4,7 @@ import pandas as pd
 from pandas.api.types import is_float_dtype
 import re
 
-IMG_URL = "https://raw.githubusercontent.com/jfcheong/csgo_tournament_tracker/main/assets/%s"
+IMG_URL = "https://raw.githubusercontent.com/jfcheong/csgo_tournament_tracker/main/assets/%s.png"
 
 def get_series_start_date(event):
     series_start = event["seriesState"]["startedAt"].split("T")[0]
