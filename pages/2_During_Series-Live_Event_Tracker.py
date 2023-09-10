@@ -69,12 +69,19 @@ ecstatic_url = "https://img-cdn.hltv.org/teamlogo/Ox1eFAB6o8VM6jwgPbQuks.svg?ixl
 
 # Streamlit Visuals
 ## Top Header Section
-st.button("Rerun")
-st.title("During Series")
+col1, col2 = st.columns([5,1])
+with col1:
+    st.title("During Series")
+with col2:
+    st.button("Rerun")    
 
-st.subheader(f"Date of Match: {match_date}")
-st.subheader(f"Match format: {format}")
-st.subheader(f"Round: {round_num}")
+col1, col2, col3 = st.columns(3)
+with col1:
+    st.caption(f"Date of Match: {match_date}")
+with col2:
+    st.caption(f"Match format: {format}")
+with col3:
+    st.caption(f"Round: {round_num}")
 
 components.html(
     f"""
