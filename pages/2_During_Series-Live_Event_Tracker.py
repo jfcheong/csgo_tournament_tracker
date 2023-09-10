@@ -102,7 +102,7 @@ with preround_tab:
     # Init empty container
     placeholder_pre = st.empty()
     with placeholder_pre:
-        st.info('Please wait for buying phase to being...', icon="ℹ️")
+        st.info('Please wait for buying phase to begin...', icon="ℹ️")
 
 ### During Round Tab
 with duringround_tab:
