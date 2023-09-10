@@ -350,7 +350,7 @@ for event_num in range(len(r2_events_list)):
                 lo_filtered = lo.loc[(lo['team'] == team_t) & (lo['name'] == pha_filtered.loc[i, 'name'])].filter(like='loadout').reset_index(drop=True)
                 lo_mapped = utils.get_weapons_img_path(lo_filtered, ['loadout.primary', 'loadout.secondary', 'loadout.melee']).rename(columns={'loadout.primary.img': 'Primary', 'loadout.secondary.img': 'Secondary', 'loadout.melee.img': 'Melee'})
                 st.markdown(f"##### Player {i+1}: {pha_filtered.loc[i, 'name']} ({utils.get_player_kda(kda, gti_latest_round, pha_filtered, i)})")
-                st.dataframe(lo_mapped, column_config={
+                st.dataframe(lo_mapped[["Primary", "Secondary", "Melee"]], column_config={
                     "Primary": st.column_config.ImageColumn(label="Primary", width='small'),
                     "Secondary": st.column_config.ImageColumn(label="Secondary", width='small'),
                     "Melee": st.column_config.ImageColumn(label="Melee", width='small'),
@@ -375,7 +375,7 @@ for event_num in range(len(r2_events_list)):
                 lo_filtered = lo.loc[(lo['team'] == team_ct) & (lo['name'] == pha_filtered.loc[i, 'name'])].filter(like='loadout').reset_index(drop=True)
                 lo_mapped = utils.get_weapons_img_path(lo_filtered, ['loadout.primary', 'loadout.secondary', 'loadout.melee']).rename(columns={'loadout.primary.img': 'Primary', 'loadout.secondary.img': 'Secondary', 'loadout.melee.img': 'Melee'})
                 st.markdown(f"##### Player {i+1}: {pha_filtered.loc[i, 'name']} ({utils.get_player_kda(kda, gti_latest_round, pha_filtered, i)})")
-                st.dataframe(lo_mapped, column_config={
+                st.dataframe(lo_mapped[["Primary", "Secondary", "Melee"]], column_config={
                     "Primary": st.column_config.ImageColumn(label="Primary", width='small'),
                     "Secondary": st.column_config.ImageColumn(label="Secondary", width='small'),
                     "Melee": st.column_config.ImageColumn(label="Melee", width='small'),
