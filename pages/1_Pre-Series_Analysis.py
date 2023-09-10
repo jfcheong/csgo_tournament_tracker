@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import streamlit as st
 import streamlit.components.v1 as components
+import plotly.graph_objects as go
 import json
 from datetime import date
 import pandas as pd
@@ -114,8 +115,55 @@ components.html(
 
 st.subheader("Predicted Winrate")
 
+team1 = final_teams[0]
+team2 = final_teams[1]
 
+team1_wr = 80
+team2_wr = 20
 
+fig = go.Figure()
+fig.add_trace(go.Bar(
+    y=['Predicted Winrate'],
+    x=[team1_wr],
+    name=team1,
+    orientation='h',
+    text=f"{team1_wr}%",
+    textposition="inside",
+    marker=dict(
+        color='#7CB5EC',
+        line=dict(color='#7CB5EC', width=1)
+    )
+))
+fig.add_trace(go.Bar(
+    y=['Predicted Winrate'],
+    x=[team2_wr],
+    name=team2,
+    orientation='h',
+    text=f"{team2_wr}%",
+    marker=dict(
+        color='#434348',
+        line=dict(color='#434348', width=1)
+    )
+))
+
+fig.update_layout(
+    height=70,
+    margin=dict(l=0,r=0,b=0,t=0),
+    xaxis=dict(showgrid=False,
+        showline=False,
+        showticklabels=False,
+        zeroline=False,
+        domain=[0.15, 1]),
+        
+    yaxis=dict(showgrid=False,
+        showline=False,
+        showticklabels=False,
+        zeroline=False,
+        domain=[0.15, 1]),
+)
+
+fig.update_layout(barmode='stack')
+st.plotly_chart(fig, use_container_width=True)
 
 st.subheader("Game History")
 
@@ -152,8 +200,6 @@ with col1:
     """
     ,height=250)
     
-    st.subheader("Players")
-
     kills = get_match_result_per_player(semifinals_file2, key='kills')
     assists = get_match_result_per_player(semifinals_file2, key='killAssistsGiven')
     death = get_match_result_per_player(semifinals_file2, key='deaths')
@@ -265,8 +311,6 @@ with col2:
     player_kdr = list(kdr.values())
     player_name = list(kdr.keys())
 
-    
-    st.subheader("Players")
 
     # plotting the bar charts
 
