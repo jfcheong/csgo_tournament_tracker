@@ -9,6 +9,8 @@ import pandas as pd
 import numpy as np
 from utils import utils
 
+st.set_page_config(page_title="CSGO Post Series Analysis", page_icon=":gun:", 
+    layout="wide", initial_sidebar_state="auto", menu_items=None)
 
 @st.cache_data  
 def load_data():
@@ -40,6 +42,32 @@ def load_data():
                 print(e)
                 continue
 
+event, economy = load_data()
+
+result = event["seriesState"]
+
+def get_match_score(state_dict):
+    games_df = pd.DataFrame(state_dict["games"])
+    maps = list(games_df["map"])
+    match_score = {}
+    team1_counter =0
+    team2_counter = 0
+    team_stats_per_round = pd.json_normalize(data=state_dict["games"],
+                                record_path=["segments", "teams"],
+                                meta=["sequenceNumber",["segments", "id"]],meta_prefix="game_")
+    team_stats_per_round = team_stats_per_round[["game_sequenceNumber", "game_segments.id", "name", "side", "won", "kills","damageDealt", "damageTaken"]]
+    for i in range(len(maps)):
+        map_stats = team_stats_per_round[(team_stats_per_round.game_sequenceNumber==i+1) & ((team_stats_per_round.won==True))]
+        map_score = map_stats['name'].value_counts()
+        map_winner = map_score.idxmax()
+        map_loser = map_score.idxmin()
+        if map_winner in match_score:
+            match_score[map_winner] +=1
+        else:
+            match_score[map_winner] = team1_counter + 1
+        match_score[map_loser] = team2_counter 
+
+    return match_score
 
 def get_round_results(event, return_df=False):
     round_wins = []
@@ -82,8 +110,6 @@ def compute_econ_winrate(df):
 
 st.title("Post Series Analysis")
 
-event, economy = load_data()
-result = event["seriesState"]
 match_date = result["startedAt"].split("T")[0]
 
 
@@ -105,8 +131,10 @@ teams_df = teams_df[['name', 'score', 'won', 'kills',
 
 
 winning_team = teams_df[teams_df['score'] == 2]['name'].tolist()[0]
-losing_team = teams_df[teams_df['score'] == 0]['name'].tolist()[0]
+losing_team = teams_df[(teams_df['score'] == 0) | (teams_df['score'] == 1)]['name'].tolist()[0]
 
+winning_team_score = teams_df[teams_df['name'] == winning_team]['score'].tolist()[0]
+losing_team_score = teams_df[teams_df['name'] == losing_team]['score'].tolist()[0]
 
 st.subheader(f"Date of Match: {match_date}")
 st.write(f"Match format: {format}")
@@ -119,13 +147,13 @@ components.html(
     f"""
     <div style="height:200px; background-color:#F0F2F6;display: grid;column-gap: 30px;grid-template-columns: auto auto auto;padding: 10px;">
         <div style="text-align: right;">
-            <h3 style="color:black; font-family:Segoe UI, Arial, sans-serif">{winning_team}</h3>
+            <h3 style="color:black; font-family:sans-serif">{winning_team}</h3>
             <img style="height:50px;" src="{forze_url}" />
         </div>
         
-        <h3 style="color:black;font-size:40px;;text-align: center;font-family:Segoe UI, Arial, sans-serif ">2 - 0</h3>
+        <h3 style="color:black;font-size:40px;;text-align: center;font-family:sans-serif ">{winning_team_score} - {losing_team_score}</h3>
         <div style="text-align: left;">
-            <h3 style="color:black;font-family:Segoe UI, Arial, sans-serif">{losing_team}</h3>
+            <h3 style="color:black;font-family:sans-serif">{losing_team}</h3>
             <img style="height:50px;" src="{ecstatic_url}" />
         </div>
     </div>

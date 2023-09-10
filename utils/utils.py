@@ -4,6 +4,7 @@ import pandas as pd
 from pandas.api.types import is_float_dtype
 import re
 
+IMG_URL = "https://raw.githubusercontent.com/jfcheong/csgo_tournament_tracker/main/assets/%s.png"
 
 def get_series_start_date(event):
     series_start = event["seriesState"]["startedAt"].split("T")[0]
@@ -311,10 +312,17 @@ def get_player_health_armor(event):
     return players.tail(10).reset_index(drop=True)
 
 def get_player_economy(event):
-    required_fields = ["money", "inventoryValue", "netWorth"]
+    required_fields = ["money", "inventoryValue", "netWorth", "loadout.primary", "loadout.secondary"]
     default_fields = ["team", "name"]
     players = get_player_state(event, granularity="game").filter(items=(default_fields + required_fields))
     return players.tail(10).reset_index(drop=True)
+
+def get_player_kda(kda_df, latest_round_df, player_df, index):
+    kda_filtered = kda_df.loc[(kda_df['name'] == player_df.loc[index, 'name']) & (
+            kda_df['map_name'] == latest_round_df.loc[latest_round_df['side'] == 'terrorists', 'map'].values[0])]
+    kda_str = kda_filtered["kills"].values[0].astype(str) + "/" + kda_filtered["deaths"].values[0].astype(
+        str) + "/" + kda_filtered["killAssistsGiven"].values[0].astype(str)
+    return kda_str
 
 def get_player_kdao(event, granularity):
     if granularity == "game":
@@ -389,6 +397,43 @@ def get_event_log(event):
 
     else:
         return None
+
+
+def get_match_result(state_dict, key):
+    teams = state_dict['teams']
+    result_dict = {}
+    for team in teams:
+        team_name = team['name']
+        value = team[key]
+        result_dict[team_name] = value
+    return result_dict
+
+
+def get_weapons_img_path(df, weapons_col=["loadout.primary", "loadout.secondary"]):
+    """ Gets image path from weapon name """
+    for col in weapons_col:
+        img_col = [IMG_URL % (str(val)) if val else "" for val in df[col]]
+        df[f"{col}.img"] = img_col
+    return df
+
+
+def _clean_text(s):
+    """ Cleans text into human Nreadable format """
+    s = s.replace("_", " ") # replace _ with space
+    s = re.sub(r'((?<=[a-z])[A-Z]|(?<!\A)[A-Z](?=[a-z]))', r' \1', s) # add space before capital letter
+    s = s.title() # title case
+    return s
+
+
+def format_items(loadout, exclude_col=["loadout.primary", "loadout.secondary"]):
+    """ Formats loadout items into list of lists """
+    cols = [col for col in loadout.columns.str.startswith('loadout.')
+                            if col not in exclude_col]
+    items = loadout.loc[:, cols].values.tolist()
+    return [cleaned if (cleaned := [_clean_text(elem) for elem in sublist 
+                                                    if elem is not None])
+                        else [None] for sublist in items]
+
 
 if __name__ == "__main__":
     print("Loaded utils")
