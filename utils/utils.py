@@ -311,7 +311,7 @@ def get_player_health_armor(event):
     return players.tail(10).reset_index(drop=True)
 
 def get_player_economy(event):
-    required_fields = ["money", "inventoryValue", "netWorth"]
+    required_fields = ["money", "inventoryValue", "netWorth", "loadout.primary", "loadout.secondary"]
     default_fields = ["team", "name"]
     players = get_player_state(event, granularity="game").filter(items=(default_fields + required_fields))
     return players.tail(10).reset_index(drop=True)
