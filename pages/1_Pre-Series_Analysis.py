@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import streamlit as st
 import streamlit.components.v1 as components
+import plotly.graph_objects as go
 import json
 from datetime import date
 import pandas as pd
@@ -103,12 +104,12 @@ components.html(
     f"""
     <div style="height:200px; background-color:#F0F2F6;display: grid;column-gap: 2%;grid-template-columns: auto auto;padding: 10px;">
         <div style="text-align: center;">
-            <h3 style="color:black;font-family:Segoe UI, Arial, sans-serif">{final_teams[0]}</h3>
+            <h3 style="color:black;font-family:sans-serif">{final_teams[0]}</h3>
             <img style="height:50px;" src="{ecstatic_url}" />
         </div>
         
         <div style="text-align: center;">
-            <h3 style="color:black;font-family:Segoe UI, Arial, sans-serif">{final_teams[1]}</h3>
+            <h3 style="color:black;font-family:sans-serif">{final_teams[1]}</h3>
             <img style="height:50px;" src="{forze_url}" />
         </div>
     </div>
@@ -117,6 +118,11 @@ components.html(
 )
 
 st.subheader("Predicted Winrate")
+
+team1 = final_teams[0]
+team2 = final_teams[1]
+
+
 
 game_1, game_2 = finals_file['games']
 
@@ -130,7 +136,58 @@ model = keras.models.load_model(f"./model/csgo_game_prediction_model.h5")
 probas = model.predict(features)
 average_prob = np.average(probas, axis=0)
 
-st.text(f"Win Prediction: {final_teams[0]}: {average_prob[0]:.2%}, {final_teams[1]}: {average_prob[1]:.2%} ")
+team1_wr = f"{average_prob[0]:.2%}"
+team2_wr = f"{average_prob[1]:.2%}"
+
+
+fig = go.Figure()
+fig.add_trace(go.Bar(
+    y=['Predicted Winrate'],
+    x=[team1_wr],
+    name=team1,
+    orientation='h',
+    text=f"{team1_wr}%",
+    textposition="inside",
+    hoverinfo='none',
+    marker=dict(
+        color='#7CB5EC',
+        line=dict(color='#7CB5EC', width=1)
+    )
+))
+fig.add_trace(go.Bar(
+    y=['Predicted Winrate'],
+    x=[team2_wr],
+    name=team2,
+    orientation='h',
+    text=f"{team2_wr}%",
+    hoverinfo='none',
+    marker=dict(
+        color='#434348',
+        line=dict(color='#434348', width=1)
+    )
+))
+
+fig.update_layout(
+    height=70,
+    font_family="Sans-serif",
+    font_size = 15,
+    margin=dict(l=0,r=0,b=0,t=0),
+    xaxis=dict(showgrid=False,
+        showline=False,
+        showticklabels=False,
+        zeroline=False,
+        domain=[0.15, 1]),
+        
+    yaxis=dict(showgrid=False,
+        showline=False,
+        showticklabels=False,
+        zeroline=False,
+        domain=[0.15, 1]),
+)
+
+fig.update_layout(barmode='stack')
+st.plotly_chart(fig, use_container_width=True)
+
 
 st.subheader("Game History")
 
@@ -148,27 +205,25 @@ with col1:
     components.html(
     f"""
     <div style="padding-bottom:10px;text-align:center">
-            <h3 style="color:black;font-family:Segoe UI, Arial, sans-serif">{relevant_team} <img style="height:50px;" src="{ecstatic_url}" /></h3> 
+            <h3 style="color:black;font-family:sans-serif">{relevant_team} <img style="height:50px;" src="{ecstatic_url}" /></h3> 
         </div>
     <div style="height:200px; background-color:#F0F2F6;display: grid;column-gap: 30px;grid-template-columns: auto auto auto;padding: 10px;">
         <div style="text-align: center;">
-            <h3 style="color:black;font-family:Segoe UI, Arial, sans-serif">{list(col1_match_score)[0]}</h3>
+            <h4 style="color:black;font-family:sans-serif">{list(col1_match_score)[0]}</h4>
         </div>
 
         <div style="text-align: left;">
-            <p style="font-size:40px;color:black;font-family:Segoe UI, Arial, sans-serif">{col1_match_score[list(col1_match_score)[0]]} - {col1_match_score[list(col1_match_score)[1]]}</p>
+            <p style="font-size:40px;color:black;font-family:sans-serif">{col1_match_score[list(col1_match_score)[0]]} - {col1_match_score[list(col1_match_score)[1]]}</p>
         </div>
         
         <div style="text-align: center;">
-            <h3 style="color:black;Segoe UI, Arial, sans-serif">{list(col1_match_score)[1]}</h3>
+            <h4 style="color:black;font-family:sans-serif">{list(col1_match_score)[1]}</h4>
         </div>
     </div>
 	
     """
     ,height=250)
     
-    st.subheader("Players")
-
     kills = get_match_result_per_player(semifinals_file2, key='kills')
     assists = get_match_result_per_player(semifinals_file2, key='killAssistsGiven')
     death = get_match_result_per_player(semifinals_file2, key='deaths')
@@ -245,20 +300,20 @@ with col2:
     components.html(
     f"""
     <div style="padding-bottom:10px; text-align:center">
-            <h3 style="color:black; font-family: Segoe UI, Arial, sans-serif;">{relevant_team}  <img style="height:50px;" src="{forze_url}" /></h3>
+            <h3 style="color:black; font-family:sans-serif;">{relevant_team}  <img style="height:50px;" src="{forze_url}" /></h3>
         
         </div>
     <div style="height:200px; background-color:#F0F2F6;display: grid;column-gap: 30px;grid-template-columns: auto auto auto;padding: 10px;">
         <div style="text-align: center;">
-            <h3 style="color:black;font-family:Segoe UI, Arial, sans-serif;">{list(col2_match_score)[0]}</h3>
+            <h4 style="color:black;font-family:sans-serif;">{list(col2_match_score)[0]}</h4>
         </div>
 
         <div style="text-align: center;">
-            <p style="font-size:40px;color:black;font-family:Segoe UI, Arial, sans-serif;">{col2_match_score[list(col2_match_score)[0]]} - {col2_match_score[list(col2_match_score)[1]]}</p>
+            <p style="font-size:40px;color:black;font-family:sans-serif;">{col2_match_score[list(col2_match_score)[0]]} - {col2_match_score[list(col2_match_score)[1]]}</p>
         </div>
         
         <div style="text-align: center;">
-            <h3 style="color:black;font-family:Segoe UI, Arial, sans-serif;">{list(col2_match_score)[1]}</h3>
+            <h4 style="color:black;font-family:sans-serif;">{list(col2_match_score)[1]}</h4>
         </div>
     </div>
 	
@@ -280,8 +335,6 @@ with col2:
     player_kdr = list(kdr.values())
     player_name = list(kdr.keys())
 
-    
-    st.subheader("Players")
 
     # plotting the bar charts
 
