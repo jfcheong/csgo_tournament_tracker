@@ -201,8 +201,7 @@ for i in range(4, len(full_events)-1):
 
 # Loop events in round 2 to simulate live events occuring
 
-display_cols = ["name", "loadout.primary", "loadout.primary.img", 
-                "loadout.secondary", "loadout.secondary.img",
+display_cols = ["name", "loadout.primary.img", "loadout.secondary.img",
                  "Equipment", "inventoryValue", "money" ]
 kill_log_list = []
 obj_log_list = []
@@ -247,8 +246,6 @@ for event_num in range(len(r2_events_list)):
         st.dataframe(team1_economy, 
                     column_config={
                         "name": "Player",
-                        "loadout.primary": "Primary", 
-                        "loadout.secondary":"Secondary", 
                         "money":"Money",
                         "inventoryValue": "Inventory Value",
                         "loadout.primary.img": st.column_config.ImageColumn(
@@ -269,8 +266,6 @@ for event_num in range(len(r2_events_list)):
         st.dataframe(team2_economy, 
                     column_config={
                         "name": "Player",
-                        "loadout.primary": "Primary", 
-                        "loadout.secondary":"Secondary", 
                         "money":"Money",
                         "inventoryValue": "Inventory Value",
                         "loadout.primary.img": st.column_config.ImageColumn(
