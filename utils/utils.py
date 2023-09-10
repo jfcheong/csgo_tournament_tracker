@@ -317,6 +317,13 @@ def get_player_economy(event):
     players = get_player_state(event, granularity="game").filter(items=(default_fields + required_fields))
     return players.tail(10).reset_index(drop=True)
 
+def get_player_kda(kda_df, latest_round_df, player_df, index):
+    kda_filtered = kda_df.loc[(kda_df['name'] == player_df.loc[index, 'name']) & (
+            kda_df['map_name'] == latest_round_df.loc[latest_round_df['side'] == 'terrorists', 'map'].values[0])]
+    kda_str = kda_filtered["kills"].values[0].astype(str) + "/" + kda_filtered["deaths"].values[0].astype(
+        str) + "/" + kda_filtered["killAssistsGiven"].values[0].astype(str)
+    return kda_str
+
 def get_player_kdao(event, granularity):
     if granularity == "game":
         required_fields = ["^adr$", "^kills$", "^killAssistsGiven$", "^deaths$", "^multikills$", "objectives.*"]
