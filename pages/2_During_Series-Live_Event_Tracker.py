@@ -29,21 +29,32 @@ with open('../CCT-Online-Finals-1/2579089_events.jsonl', 'r') as jsonl_file:
 with open(f'../CCT-Online-Finals-1/2578928_state.json', 'r') as json_file:
     state = json.load(json_file)
 
+
+
 # Load weapons json file
-with open(f'./assets/weapons.json', 'r') as json_file:
-    weapons = json.load(json_file)
+all_weapons = ["mag7", "nova", "xm1014", "mac10", "mp9", "ak47", "aug", "famas", "galilar", "m4a1", "m4a1_silencer", "ssg08", "awp", "m249", "negev", "scar20", "g3sg1", "sg553", "ppbizon", "mp7", "ump45", "p90", "mp5_silencer", "sawedoff", "hkp2000", "cz75a", "deagle", "fiveseven", "glock", "p250", "tec9", "usp_silencer", "elite", "revolver", "knife", "knife_t"]
 
 date = state["startedAt"].split("T")[0]
 format =state["format"]
 
 
-def get_weapons_img_path(df, weapons, weapons_col=["loadout.primary", "loadout.secondary"]):
-    """  """
+def get_weapons_img_path(df, weapons_col=["loadout.primary", "loadout.secondary"]):
+    """ Gets image path from weapon name """
+    url = "https://raw.githubusercontent.com/jfcheong/csgo_tournament_tracker/feature/weapons/assets/%s.png"
     for col in weapons_col:
-        img_col = [Image.open(weapons[str(val)]) for val in df[col]]
+        img_col = [url % (str(val)) if val else "" for val in df[col]]
         df[f"{col}.img"] = img_col
     return df
 
+def format_items(loadout, df):
+    cols = [col for col in loadout.columns.str.startswith('loadout.')
+                            if col not in ["loadout.primary", "loadout.secondary"]]
+    print(cols)
+    items = loadout.loc[:, cols].values.tolist()
+    df["Items"] = [cleaned if (cleaned := [elem for elem in sublist 
+                                                    if elem is not None])
+                        else None for sublist in items]
+    return df
 
 # Data Engineering
 def get_player_state(event, return_df=True):
@@ -204,16 +215,13 @@ with preround_tab:
     st.subheader("Pre-Round Economy", divider='rainbow')
 
     # Format economy df
-    items = loadout.loc[:, loadout.columns.str.startswith('loadout.')].values.tolist()
-    economy["Items"] = [cleaned if (cleaned := [elem for elem in sublist 
-                                                    if elem is not None])
-                        else [None] for sublist in items]
-    economy = get_weapons_img_path(economy, weapons)
+    economy = format_items(loadout, economy)
+    economy = get_weapons_img_path(economy)
 
 
     economy.rename(columns= {'name':'Player',"loadout.primary": "Primary", 
-                            "loadout.primary.img": "thumbnail",
-                            "loadout.secondary":"Secondary", 'money':'Money',
+                            "loadout.secondary":"Secondary", 
+                            'money':'Money',
                             "inventoryValue": "Inventory Value"}, 
                             inplace = True)
 
@@ -232,8 +240,11 @@ with preround_tab:
         st.write(f"Total Inventory Value: {team1_total}")
     st.dataframe(team1_economy, 
                 column_config={
-                    "thumbnail": st.column_config.ImageColumn(
-                        "Weapon Image", help="help"
+                    "loadout.primary.img": st.column_config.ImageColumn(
+                        "Primary Weapon", help="Primary Weapon"
+                    ),
+                    "loadout.secondary.img": st.column_config.ImageColumn(
+                        "Secondary Weapon", help="Secondary Weapon"
                     )
                 },
                 hide_index=True)
@@ -245,8 +256,11 @@ with preround_tab:
         st.write(f"Total Inventory Value: {team2_total}")
     st.dataframe(team2_economy, 
                 column_config={
-                    "thumbnail": st.column_config.ImageColumn(
-                        "Weapon Image", help="help"
+                    "loadout.primary.img": st.column_config.ImageColumn(
+                        "Primary Weapon", help="Primary Weapon"
+                    ),
+                    "loadout.secondary.img": st.column_config.ImageColumn(
+                        "Secondary Weapon", help="Secondary Weapon"
                     )
                 },
                 hide_index=True)
