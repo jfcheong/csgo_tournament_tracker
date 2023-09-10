@@ -122,13 +122,13 @@ components.html(
     f"""
     <div style="height:200px; background-color:#F0F2F6;display: grid;column-gap: 30px;grid-template-columns: auto auto auto;padding: 10px;">
         <div style="text-align: right;">
-            <h3 style="color:black; font-family: Cambria, Georgia, serif;">{winning_team}</h3>
+            <h3 style="color:black; font-family:Segoe UI, Arial, sans-serif">{winning_team}</h3>
             <img style="height:50px;" src="{forze_url}" />
         </div>
         
-        <h3 style="color:black;font-size:40px;;text-align: center;font-family: Cambria, Georgia, serif; ">2 - 0</h3>
+        <h3 style="color:black;font-size:40px;;text-align: center;font-family:Segoe UI, Arial, sans-serif ">2 - 0</h3>
         <div style="text-align: left;">
-            <h3 style="color:black;font-family: Cambria, Georgia, serif;">{losing_team}</h3>
+            <h3 style="color:black;font-family:Segoe UI, Arial, sans-serif">{losing_team}</h3>
             <img style="height:50px;" src="{ecstatic_url}" />
         </div>
     </div>
