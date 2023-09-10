@@ -87,12 +87,12 @@ components.html(
     f"""
     <div style="height:200px; background-color:#F0F2F6;display: grid;column-gap: 2%;grid-template-columns: auto auto;padding: 10px;">
         <div style="text-align: center;">
-            <h3 style="color:black;font-family:Sans Seriv;">{team1}</h3>
+            <h3 style="color:black;font-family:Sans-Serif;">{team1}</h3>
             <img style="height:50px;" src="{ecstatic_url}" />
         </div>
 
         <div style="text-align: center;">
-            <h3 style="color:black;">{team2}</h3>
+            <h3 style="color:black;font-family:Sans-Serif;">{team2}</h3>
             <img style="height:50px;" src="{forze_url}" />
         </div>
     </div>
@@ -224,7 +224,6 @@ for event_num in range(len(r2_events_list)):
     # Format economy df
     economy["Equipment"] = utils.format_items(lo)
     economy = utils.get_weapons_img_path(economy)
-    print(economy[["loadout.primary.img"]])
 
     # Split df by team
     team1_economy = economy[economy["team"]==team1][display_cols]
