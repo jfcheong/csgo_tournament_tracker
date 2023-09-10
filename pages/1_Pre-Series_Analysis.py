@@ -7,8 +7,9 @@ from datetime import date
 import pandas as pd
 import numpy as np
 from highcharts_excentis import Highchart
-
-
+import keras
+import numpy as np
+from utils import utils
 
 st.title("Upcoming Series")
 
@@ -114,8 +115,19 @@ components.html(
 
 st.subheader("Predicted Winrate")
 
+game_1, game_2 = finals_file['games']
 
+stats_df = pd.read_csv(f"./model/agg_player_stats.csv").set_index(['teamName', 'name', 'side'])
 
+game1_features = utils.compute_features(stats_df, game_1['teams'])
+game2_features = utils.compute_features(stats_df, game_2['teams'])
+features = utils.combine_and_pivot([game1_features,game2_features])
+
+model = keras.models.load_model(f"./model/csgo_game_prediction_model.h5")
+probas = model.predict(features)
+average_prob = np.average(probas, axis=0)
+
+st.text(f"Win Prediction: {final_teams[0]}: {average_prob[0]:.2%}, {final_teams[1]}: {average_prob[1]:.2%} ")
 
 st.subheader("Game History")
 
