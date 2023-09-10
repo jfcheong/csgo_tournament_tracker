@@ -57,13 +57,6 @@ for i in range(4, len(full_events) - 1):
         round_num = json_event["seriesState"]["games"][-1]["segments"][-1]["id"].replace('round-', '')
         break
 
-# Get list of Round 2 events
-r2_events_list = []
-for i in range(4, len(full_events)-1):
-    loaded_events = json.loads(full_events[i])
-    if loaded_events["events"][-1]["id"] in r2_eid_list:
-        r2_events_list.append(loaded_events)
-
 # Match information
 match_date = state["startedAt"].split("T")[0]
 format = state["format"].replace('-', ' ').capitalize()
@@ -105,193 +98,19 @@ preround_tab, duringround_tab, postround_tab = st.tabs(["Pre-Round", "During Rou
 
 ### Pre-Round Tab
 with preround_tab:
-    st.header(f"Round {round_num}")
-    st.subheader("Pre-Round Economy", divider='rainbow')
-    display_cols = ["name", "loadout.primary", "loadout.primary.img", 
-                    "loadout.secondary", "loadout.secondary.img",
-                     "Equipment", "inventoryValue", "money" ]
-
 
     # Init empty container
-    placeholder = st.empty()
-    for event_num in range(len(r2_events_list)):
-        selected_event = r2_events_list[event_num]["events"][-1]
-        economy = utils.get_player_economy(selected_event).fillna('')
-        lo = utils.get_loadouts(selected_event)
+    placeholder_pre = st.empty()
+    with placeholder_pre:
+        st.info('Please wait for buying phase to being...', icon="ℹ️")
 
-        # Format economy df
-        economy["Equipment"] = utils.format_items(lo)
-        economy = utils.get_weapons_img_path(economy)
+### During Round Tab
+with duringround_tab:
 
-        # Split df by team
-        team1_economy = economy[economy["team"]==team1][display_cols]
-        team1_total = team1_economy["inventoryValue"].sum()
-
-        team2_economy = economy[economy["team"]==team2][display_cols]
-        team2_total = team2_economy["inventoryValue"].sum()
-        with placeholder.container():
-            # Display
-            col1, col2 = st.columns([4,1])
-            with col1:
-                st.subheader(f"{team1}")
-            with col2:
-                st.write(f"Total Inventory Value: {team1_total}")
-
-            st.dataframe(team1_economy, 
-                        column_config={
-                            "name": "Player",
-                            "loadout.primary": "Primary", 
-                            "loadout.secondary":"Secondary", 
-                            "money":"Money",
-                            "inventoryValue": "Inventory Value",
-                            "loadout.primary.img": st.column_config.ImageColumn(
-                                "Primary Weapon", help="Primary Weapon"
-                            ),
-                            "loadout.secondary.img": st.column_config.ImageColumn(
-                                "Secondary Weapon", help="Secondary Weapon"
-                            )
-                        },
-                        hide_index=True)
-
-            col1, col2 = st.columns([4,1])
-            with col1:
-                st.subheader(f"{team2}")
-            with col2:
-                st.write(f"Total Inventory Value: {team2_total}")
-
-            st.dataframe(team2_economy, 
-                        column_config={
-                            "name": "Player",
-                            "loadout.primary": "Primary", 
-                            "loadout.secondary":"Secondary", 
-                            "money":"Money",
-                            "inventoryValue": "Inventory Value",
-                            "loadout.primary.img": st.column_config.ImageColumn(
-                                "Primary Weapon", help="Primary Weapon"
-                            ),
-                            "loadout.secondary.img": st.column_config.ImageColumn(
-                                "Secondary Weapon", help="Secondary Weapon"
-                            )
-                        },
-                        hide_index=True) 
-        time.sleep(0.1)
-
-    ### During Round Tab
-    with duringround_tab:
-        def get_player_kda(kda_df, latest_round_df, player_df, index):
-            kda_filtered = kda_df.loc[(kda_df['name'] == player_df.loc[index, 'name']) & (
-                    kda_df['map_name'] == latest_round_df.loc[latest_round_df['side'] == 'terrorists', 'map'].values[0])]
-            kda_str = kda_filtered["kills"].values[0].astype(str) + "/" + kda_filtered["deaths"].values[0].astype(
-                str) + "/" + kda_filtered["killAssistsGiven"].values[0].astype(str)
-            return kda_str
-
-        placeholder = st.empty()
-        placeholder2 = st.empty()
-        kill_log_list = []
-        obj_log_list = []
-        for event_num in range(len(r2_events_list)):
-            selected_event = r2_events_list[event_num]["events"][-1]
-            pha = utils.get_player_health_armor(selected_event)
-            kda = utils.get_player_kdao(selected_event, 'game')
-            gti = utils.get_team_info(selected_event, 'round')
-            ps = utils.get_player_state(selected_event, 'game')
-            lo = utils.get_loadouts(selected_event)
-            gti_latest_round = gti.loc[gti['round_seq'] == int(round_num)].reset_index(drop=True)
-
-            with placeholder.container():
-                col1, col2 = st.columns(2)
-                st.text(event_num)
-
-                with col1:
-                    st.subheader("Kills", divider='rainbow')
-
-                    if selected_event["type"] == "player-killed-player":
-                        actor, target, action, weapon, round_time, action_log, event_log = utils.get_event_log(selected_event)
-                        kill_list = [round_time, actor, weapon, target]
-                        kill_log_list.append(kill_list)
-
-                    kill_log_list.sort(reverse=True)
-                    kills_df = pd.DataFrame(kill_log_list, columns=['round_time', 'actor', 'weapon', 'target'])
-                    kills_df = utils.get_weapons_img_path(kills_df, ["weapon"])
-                    st.dataframe(kills_df, column_config={"weapon": st.column_config.ImageColumn(label="weapon", width='small')},
-                                 hide_index=True, use_container_width=True)
-
-                with col2:
-                    st.subheader("Objectives", divider='rainbow')
-
-                    if re.search(r"\bplayer.*completed.*\b", selected_event["type"]):
-                        round_time, action_log, event_log = utils.get_event_log(selected_event)
-                        obj_list = [event_log]
-                        obj_log_list.append(obj_list)
-
-                    obj_log_list.sort(reverse=True)
-                    obj_df = pd.DataFrame(obj_log_list, columns=['objective_log'])
-                    st.dataframe(obj_df, hide_index=True, use_container_width=True)
-
-                # Players' Info Section
-                st.subheader("Players' Info", divider='rainbow')
-                colors = ['#edb5b5', '#52c222']
-                with st.container():
-                    components.html("""
-                    <div style="text-align: center;">
-                            <h4 style="color:black;font-family: Cambria, Georgia, serif;">Legend</h4>
-                            <img style="height:50px;" src="https://drive.google.com/uc?export=view&id=13PSGt16GwmH4SxLK1vJEObH2i6OL3W7Z" />
-                        </div>
-                    """)
-
-                col_t, col_ct = st.columns(2)
-
-                with (col_t):
-                    st.markdown("#### Terrorists")
-                    team_t = gti_latest_round.loc[gti_latest_round['side'] == 'terrorists', 'name'].values[0]
-                    st.markdown(f"##### Team: {team_t}")
-                    pha_filtered = pha.loc[pha['team'] == team_t].reset_index(drop=True)
-                    df_t = pha_filtered.set_index('name')
-                    df_t = pha_filtered.pivot(index="name", columns="team", values=['currentHealth', 'currentArmor']).reset_index()
-                    bar_chart_day = alt.Chart(df_t).transform_fold(['currentHealth', 'currentArmor']) \
-                        .mark_bar(clip=True).encode(x=alt.X('value:Q', stack='zero', scale=alt.Scale(domain=(0, 200)), title=''),
-                                                    y=alt.Y('name', title=''),
-                                                    color=alt.Color('key:N').legend(None),
-                                                    ).properties(width=300, height=200
-                                                                 ).repeat(layer=["currentHealth", "currentArmor"]
-                                                                          ).configure_range(category=alt.RangeScheme(colors))
-                    bar_chart_day
-
-                    for i in range(len(pha_filtered)):
-                        lo_filtered = lo.loc[(lo['team'] == team_t) & (lo['name'] == pha_filtered.loc[i, 'name'])].filter(like='loadout').reset_index(drop=True)
-                        lo_mapped = utils.get_weapons_img_path(lo_filtered, ['loadout.primary', 'loadout.secondary', 'loadout.melee']).rename(columns={'loadout.primary': 'Primary', 'loadout.secondary': 'Secondary', 'loadout.melee': 'Melee'})
-                        st.markdown(f"##### Player {i+1}: {pha_filtered.loc[i, 'name']} ({get_player_kda(kda, gti_latest_round, pha_filtered, i)})")
-                        st.dataframe(lo_mapped, column_config={
-                            "Primary": st.column_config.ImageColumn(label="Primary", width='small'),
-                            "Secondary": st.column_config.ImageColumn(label="Secondary", width='small'),
-                            "Melee": st.column_config.ImageColumn(label="Melee", width='small'),
-                        }, hide_index=True)
-
-                with (col_ct):
-                    st.markdown("#### Counter Terrorists")
-                    team_ct = gti_latest_round.loc[gti_latest_round['side'] == 'counter-terrorists', 'name'].values[0]
-                    st.markdown(f"##### Team: {team_ct}")
-                    pha_filtered = pha.loc[pha['team'] == team_ct].reset_index(drop=True)
-                    df_ct = pha_filtered.set_index('name')
-                    df_ct = pha_filtered.pivot(index="name", columns="team", values=['currentHealth', 'currentArmor']).reset_index()
-                    bar_chart_day = alt.Chart(df_ct).transform_fold(['currentHealth', 'currentArmor']) \
-                        .mark_bar(clip=True).encode(x=alt.X('value:Q', stack='zero', scale=alt.Scale(domain=(0, 200)), title=''),
-                                                    y=alt.Y('name', title=''),
-                                                    color=alt.Color('key:N').legend(None),
-                                                    ).properties(width=300, height=200
-                                                                 ).repeat(layer=["currentHealth", "currentArmor"]
-                                                                          ).configure_range(category=alt.RangeScheme(colors))
-                    bar_chart_day
-                    for i in range(len(pha_filtered)):
-                        lo_filtered = lo.loc[(lo['team'] == team_ct) & (lo['name'] == pha_filtered.loc[i, 'name'])].filter(like='loadout').reset_index(drop=True)
-                        lo_mapped = utils.get_weapons_img_path(lo_filtered, ['loadout.primary', 'loadout.secondary', 'loadout.melee']).rename(columns={'loadout.primary': 'Primary', 'loadout.secondary': 'Secondary', 'loadout.melee': 'Melee'})
-                        st.markdown(f"##### Player {i+1}: {pha_filtered.loc[i, 'name']} ({get_player_kda(kda, gti_latest_round, pha_filtered, i)})")
-                        st.dataframe(lo_mapped, column_config={
-                            "Primary": st.column_config.ImageColumn(label="Primary", width='small'),
-                            "Secondary": st.column_config.ImageColumn(label="Secondary", width='small'),
-                            "Melee": st.column_config.ImageColumn(label="Melee", width='small'),
-                        }, hide_index=True)
-            time.sleep(0.1)
+    # Init empty container
+    placeholder_during = st.empty()
+    with placeholder_during:
+        st.info('Please wait for round to begin...', icon="ℹ️")
 
 
 ### Post Round Tab
@@ -366,3 +185,192 @@ with postround_tab:
             st.table(team2_bombInfo)
             time.sleep(0.5)
 
+# Get list of Round 2 events
+r2_events_list = []
+for i in range(4, len(full_events)-1):
+    loaded_events = json.loads(full_events[i])
+    if loaded_events["events"][-1]["id"] in r2_eid_list:
+        r2_events_list.append(loaded_events)
+
+# Loop events in round 2 to simulate live events occuring
+
+display_cols = ["name", "loadout.primary", "loadout.primary.img", 
+                "loadout.secondary", "loadout.secondary.img",
+                 "Equipment", "inventoryValue", "money" ]
+kill_log_list = []
+obj_log_list = []
+
+for event_num in range(len(r2_events_list)):
+
+    # Load event data
+    selected_event = r2_events_list[event_num]["events"][-1]
+    economy = utils.get_player_economy(selected_event).fillna('')
+    pha = utils.get_player_health_armor(selected_event)
+    kda = utils.get_player_kdao(selected_event, 'game')
+    gti = utils.get_team_info(selected_event, 'round')
+    ps = utils.get_player_state(selected_event, 'game')
+    lo = utils.get_loadouts(selected_event)
+    gti_latest_round = gti.loc[gti['round_seq'] == int(round_num)].reset_index(drop=True)
+
+    ## PRE ROUND
+
+    # Format economy df
+    economy["Equipment"] = utils.format_items(lo)
+    economy = utils.get_weapons_img_path(economy)
+
+    # Split df by team
+    team1_economy = economy[economy["team"]==team1][display_cols]
+    team1_total = team1_economy["inventoryValue"].sum()
+
+    team2_economy = economy[economy["team"]==team2][display_cols]
+    team2_total = team2_economy["inventoryValue"].sum()
+
+    # Clear placeholder container
+    placeholder_pre.empty()
+
+    # Display Pre-Round
+    with placeholder_pre.container():
+        st.subheader("Pre-Round Economy", divider='rainbow')
+        col1, col2 = st.columns([4,1])
+        with col1:
+            st.subheader(f"{team1}")
+        with col2:
+            st.write(f"Total Inventory Value: {team1_total}")
+
+        st.dataframe(team1_economy, 
+                    column_config={
+                        "name": "Player",
+                        "loadout.primary": "Primary", 
+                        "loadout.secondary":"Secondary", 
+                        "money":"Money",
+                        "inventoryValue": "Inventory Value",
+                        "loadout.primary.img": st.column_config.ImageColumn(
+                            "Primary Weapon", help="Primary Weapon"
+                        ),
+                        "loadout.secondary.img": st.column_config.ImageColumn(
+                            "Secondary Weapon", help="Secondary Weapon"
+                        )
+                    },
+                    hide_index=True)
+
+        col1, col2 = st.columns([4,1])
+        with col1:
+            st.subheader(f"{team2}")
+        with col2:
+            st.write(f"Total Inventory Value: {team2_total}")
+
+        st.dataframe(team2_economy, 
+                    column_config={
+                        "name": "Player",
+                        "loadout.primary": "Primary", 
+                        "loadout.secondary":"Secondary", 
+                        "money":"Money",
+                        "inventoryValue": "Inventory Value",
+                        "loadout.primary.img": st.column_config.ImageColumn(
+                            "Primary Weapon", help="Primary Weapon"
+                        ),
+                        "loadout.secondary.img": st.column_config.ImageColumn(
+                            "Secondary Weapon", help="Secondary Weapon"
+                        )
+                    },
+                    hide_index=True) 
+
+    ## DURING ROUND
+
+    # Empty during round containter
+    placeholder_during.empty()
+
+    with placeholder_during.container():
+        col1, col2 = st.columns(2)
+        st.text(event_num)
+
+        with col1:
+            st.subheader("Kills", divider='rainbow')
+
+            if selected_event["type"] == "player-killed-player":
+                actor, target, action, weapon, round_time, action_log, event_log = utils.get_event_log(selected_event)
+                kill_list = [round_time, actor, weapon, target]
+                kill_log_list.append(kill_list)
+
+            kill_log_list.sort(reverse=True)
+            kills_df = pd.DataFrame(kill_log_list, columns=['round_time', 'actor', 'weapon', 'target'])
+            kills_df = utils.get_weapons_img_path(kills_df, ["weapon"])
+            st.dataframe(kills_df, column_config={"weapon": st.column_config.ImageColumn(label="weapon", width='small')},
+                         hide_index=True, use_container_width=True)
+
+        with col2:
+            st.subheader("Objectives", divider='rainbow')
+
+            if re.search(r"\bplayer.*completed.*\b", selected_event["type"]):
+                round_time, action_log, event_log = utils.get_event_log(selected_event)
+                obj_list = [event_log]
+                obj_log_list.append(obj_list)
+
+            obj_log_list.sort(reverse=True)
+            obj_df = pd.DataFrame(obj_log_list, columns=['objective_log'])
+            st.dataframe(obj_df, hide_index=True, use_container_width=True)
+
+        # Players' Info Section
+        st.subheader("Players' Info", divider='rainbow')
+        colors = ['#edb5b5', '#52c222']
+        with st.container():
+            components.html("""
+            <div style="text-align: center;">
+                    <h4 style="color:black;font-family: Cambria, Georgia, serif;">Legend</h4>
+                    <img style="height:50px;" src="https://drive.google.com/uc?export=view&id=13PSGt16GwmH4SxLK1vJEObH2i6OL3W7Z" />
+                </div>
+            """)
+
+        col_t, col_ct = st.columns(2)
+
+        with (col_t):
+            st.markdown("#### Terrorists")
+            team_t = gti_latest_round.loc[gti_latest_round['side'] == 'terrorists', 'name'].values[0]
+            st.markdown(f"##### Team: {team_t}")
+            pha_filtered = pha.loc[pha['team'] == team_t].reset_index(drop=True)
+            df_t = pha_filtered.set_index('name')
+            df_t = pha_filtered.pivot(index="name", columns="team", values=['currentHealth', 'currentArmor']).reset_index()
+            bar_chart_day = alt.Chart(df_t).transform_fold(['currentHealth', 'currentArmor']) \
+                .mark_bar(clip=True).encode(x=alt.X('value:Q', stack='zero', scale=alt.Scale(domain=(0, 200)), title=''),
+                                            y=alt.Y('name', title=''),
+                                            color=alt.Color('key:N').legend(None),
+                                            ).properties(width=300, height=200
+                                                         ).repeat(layer=["currentHealth", "currentArmor"]
+                                                                  ).configure_range(category=alt.RangeScheme(colors))
+            bar_chart_day
+
+            for i in range(len(pha_filtered)):
+                lo_filtered = lo.loc[(lo['team'] == team_t) & (lo['name'] == pha_filtered.loc[i, 'name'])].filter(like='loadout').reset_index(drop=True)
+                lo_mapped = utils.get_weapons_img_path(lo_filtered, ['loadout.primary', 'loadout.secondary', 'loadout.melee']).rename(columns={'loadout.primary': 'Primary', 'loadout.secondary': 'Secondary', 'loadout.melee': 'Melee'})
+                st.markdown(f"##### Player {i+1}: {pha_filtered.loc[i, 'name']} ({utils.get_player_kda(kda, gti_latest_round, pha_filtered, i)})")
+                st.dataframe(lo_mapped, column_config={
+                    "Primary": st.column_config.ImageColumn(label="Primary", width='small'),
+                    "Secondary": st.column_config.ImageColumn(label="Secondary", width='small'),
+                    "Melee": st.column_config.ImageColumn(label="Melee", width='small'),
+                }, hide_index=True)
+
+        with (col_ct):
+            st.markdown("#### Counter Terrorists")
+            team_ct = gti_latest_round.loc[gti_latest_round['side'] == 'counter-terrorists', 'name'].values[0]
+            st.markdown(f"##### Team: {team_ct}")
+            pha_filtered = pha.loc[pha['team'] == team_ct].reset_index(drop=True)
+            df_ct = pha_filtered.set_index('name')
+            df_ct = pha_filtered.pivot(index="name", columns="team", values=['currentHealth', 'currentArmor']).reset_index()
+            bar_chart_day = alt.Chart(df_ct).transform_fold(['currentHealth', 'currentArmor']) \
+                .mark_bar(clip=True).encode(x=alt.X('value:Q', stack='zero', scale=alt.Scale(domain=(0, 200)), title=''),
+                                            y=alt.Y('name', title=''),
+                                            color=alt.Color('key:N').legend(None),
+                                            ).properties(width=300, height=200
+                                                         ).repeat(layer=["currentHealth", "currentArmor"]
+                                                                  ).configure_range(category=alt.RangeScheme(colors))
+            bar_chart_day
+            for i in range(len(pha_filtered)):
+                lo_filtered = lo.loc[(lo['team'] == team_ct) & (lo['name'] == pha_filtered.loc[i, 'name'])].filter(like='loadout').reset_index(drop=True)
+                lo_mapped = utils.get_weapons_img_path(lo_filtered, ['loadout.primary', 'loadout.secondary', 'loadout.melee']).rename(columns={'loadout.primary': 'Primary', 'loadout.secondary': 'Secondary', 'loadout.melee': 'Melee'})
+                st.markdown(f"##### Player {i+1}: {pha_filtered.loc[i, 'name']} ({utils.get_player_kda(kda, gti_latest_round, pha_filtered, i)})")
+                st.dataframe(lo_mapped, column_config={
+                    "Primary": st.column_config.ImageColumn(label="Primary", width='small'),
+                    "Secondary": st.column_config.ImageColumn(label="Secondary", width='small'),
+                    "Melee": st.column_config.ImageColumn(label="Melee", width='small'),
+                }, hide_index=True)
+    time.sleep(0.1)
