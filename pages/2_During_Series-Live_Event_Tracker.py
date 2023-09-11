@@ -10,6 +10,10 @@ import streamlit.components.v1 as components
 from highcharts_excentis import Highchart
 import altair as alt
 import plotly.express as px  # interactive charts
+from io import BytesIO
+from urllib.request import urlopen
+from zipfile import ZipFile
+import json
 
 sys.path.append('../')
 from utils import utils
@@ -28,6 +32,25 @@ def load_events():
     with open('./data/CCT-Online-Finals-1/2579089_events.jsonl', 'r') as jsonl_file:
         json_list = list(jsonl_file)
     return json_list
+
+
+# @st.cache_data  # 👈 Add the caching decorator
+# def load_state():
+#     url = "https://github.com/grid-esports/datajam-2023/raw/master/data_files/csgo.zip?download="
+#     with urlopen(url) as zipresp:
+#         zip_file = ZipFile(BytesIO(zipresp.read()))
+#     with zip_file.open("csgo/CCT-Online-Finals-1/2578928_state.json", "r") as json_file:
+#         state = json.load(json_file)
+#     return state
+#
+# @st.cache_data  # 👈 Add the caching decorator
+# def load_events():
+#     url = "https://github.com/grid-esports/datajam-2023/raw/master/data_files/csgo.zip?download="
+#     with urlopen(url) as zipresp:
+#         zip_file = ZipFile(BytesIO(zipresp.read()))
+#     with zip_file.open("csgo/CCT-Online-Finals-1/2579089_events.jsonl", "r") as json_file:
+#         json_list = list(json_file)
+#     return json_list
 
 # Load data
 full_events = load_events()
@@ -92,13 +115,13 @@ components.html(
     <div style="height:200px; background-color:#F0F2F6;display: grid;column-gap: 30px;grid-template-columns: auto auto auto;padding: 10px;">
         <div style="text-align: right;">
             <h3 style="color:black; font-family:sans-serif">{team1}</h3>
-            <img style="height:50px;" src="{ecstatic_url}" />
+            <img style="height:50px;" src="{forze_url}" />
         </div>
 
         <h3 style="color:black;font-size:40px;;text-align: center;font-family:sans-serif ">{team1_score} - {team2_score}</h3>
         <div style="text-align: left;">
             <h3 style="color:black;font-family:sans-serif">{team2}</h3>
-            <img style="height:50px;" src="{forze_url}" />
+            <img style="height:50px;" src="{ecstatic_url}" />
         </div>
     </div>
     """
