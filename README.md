@@ -1,5 +1,5 @@
-# CS:GO Event-Watch
-Elevating Every Move: Your Ultimate CS:GO Tournament Tracker
+# CS\:GO Event-Watch
+_Elevating Every Move: Your Ultimate CS\:GO Tournament Tracker_
 
 <img src="./images/logo.png" width="750" />
 
