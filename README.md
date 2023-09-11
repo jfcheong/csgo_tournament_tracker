@@ -1,78 +1,73 @@
-# CS\:GO Event-Watch
-_Elevating Every Move: Your Ultimate CS\:GO Tournament Tracker_
+# Counter Strike: Global Offensive Event-Watch
+_**Elevating Every Move**: Your Ultimate CS\:GO Tournament Tracker_
 
 <img src="./images/logo.png" width="750" />
 
 ## Motivation
-Counter Strike: Global Offensive has a massive following. The peak viewers for tournaments ranged from 1 million to 2.7 million in the past 5 years. In recent years, there are over 500 tournaments held per year, with combined prize pools ranging from 13 million to 18 million. (Esports Charts, 2023) Just last year, the game managed to be the 6th most watched game, with the majority of viewers watching through Twitch. Even though it is a decade old game, Counter Strike: Global Offensive still managed to attract a huge following the gaming boom during the COVID-19 pandemic. (Brooks, 2023)
+Counter Strike: Global Offensive (CS\:GO) has a massive following. The peak viewers for tournaments ranged from 1 million to 2.7 million in the past 5 years. In recent years, there are over 500 tournaments held per year, with combined prize pools ranging from 13 million to 18 million. (Esports Charts, 2023) Just last year, the game managed to be the 6th most watched game, with the majority of viewers watching through Twitch. Even though it is a decade old game, Counter Strike: Global Offensive still managed to attract a huge following the gaming boom during the COVID-19 pandemic. (Brooks, 2023)
 
 With current popular tracking tools and sites, stats and match updates are usually limited to post map or series data as viewers have to tune in to live event streams to keep updated on the play by play of the match. Even while watching live event streams, observers of the game are limited to viewing one player at any time, resulting in actions happening off screen to be missed by the viewers. With this in mind, a live event watch would augment the viewing experience by allowing users to catch off screen plays in the form of text and visual updates.
 
-GRID, which receives data straight from the game server, is the perfect data platform to build a CS:GO tournament tracker, allowing viewers to keep themselves updated while watching the match or on the go.
+GRID, which receives data straight from the game server, is the perfect data platform to build a CS\:GO tournament tracker, allowing viewers to keep themselves updated while watching the match or on the go.
 
 ## Pre-Series Analysis
 
 ## During Series Event Tracker
 The tracker is designed with the vision to support live data feeds, updating the pre-round, during round and post round statistics whenever an update is received. 
 
+The objectives of this page are:
+- View match scores
+- View weapons and equipment bought during buy time
+- Display summary of kills, and game objectives (terrorists planting bombs, counter-terrorists diffusing bombs) in near real time
+- Display visual feedback of each player's health and inventory state
+- Show statistics (KDA, ADR, etc.) across rounds 
+
 The following are event types that start and stop updating the each tab in this page:
-|  | Event Type to Start Update | Event Type to Stop Update | Rationale |
+| Tab | Event Type to Start Update | Event Type to Stop Update | Rationale |
 | -------- | ------- | ------- | -------- |
 | Pre-Round  | `game-started-round` | `round-ended-freezetime` | Buy time |
 | During Round | `round-ended-freezetime` | `game-ended-round` | Actual gameplay - after buy time and before round ends |
 | Post Round | `game-ended-round` | `game-started-round` | Post round, updated after round ended and before next round starts |
 
-### Pre-Round
-This page updates when the event `game-started-round` is received, and stops updating when `round-ended-freezetime` is received. The page reflects the status of the round during the buy-phase where players gear up prior to the round starting, showing the economy of each player and their loadouts. With the buy of each team easily accessible, viewers will be able to have an idea of the kind of strategy a team will be employing for the upcoming round such as saving during an eco-round or force buying as an aggressive strategy to change the rhythm of the game.
+Regardless of which tab the user navigates to, the match scores of each team will be displayed at the top of the page.
 
-The events tracked for this tab are:
-- `player-purchased-item`
-- `player-dropped-item`
-- `player-pickedUp-item`
+<img src="./images/duringseries_scores.jpg" width="500" />
+
+### Pre-Round
+This tab updates when the event `game-started-round` is received, and stops updating when `round-ended-freezetime` is received. The page reflects the status of the round during the buy time where players gear up prior to the round starting, showing the economy of each player and their loadouts. With the buy of each team easily accessible, viewers will be able to have an idea of the kind of strategy a team will be employing for the upcoming round such as saving during an eco-round or force buying as an aggressive strategy to change the rhythm of the game.
+
+The events tracked for this tab are `player-purchased-item`, `player-dropped-item` and `player-pickedUp-item`.
 
 Each player is represented by a row in the inventory table, split by team. According to the event logs, the tables will auto-populate by showing the primary and secondary weapons, as well as the equipment bought by each player.
 
 When the round is in progress, this page will indicate that the buy time is over.
 
-<img src="./images/preround_economy.jpg" width="500" />
+<img src="./images/preround_economy.jpg" width="750" />
 
 ### During Round
-This page is the live event feed of the play by play during the round between the events `round-ended-freezetime` and `game-ended-round`. It features the players’ information including their loadouts, health, kill feed and objectives. This live event feed allows viewers to view information on demand as the round progresses, allowing live analysis or viewers who are unable to view the live event streams to keep up with the match all the same. 
+This tab is the live event feed of the play by play during the round between the events `round-ended-freezetime` and `game-ended-round`. It features the players’ information including their loadouts, health, kill feed and objectives. This live event feed allows viewers to view information on demand as the round progresses, allowing live analysis or viewers who are unable to view the live event streams to keep up with the match all the same. When the round is not in progress, this page will indicate that the round has yet to start.
 
 The following are the event types mapped to each feed:
 | Kills | Objectives |
 | -------- | ------- |
 | `player-killed-player` <br /> `player-teamkilled-player` <br /> `player-selfkilled-player` | `player-completed-defuseBomb` <br /> `player-completed-beginDefuseWithKit`  <br /> `player-completed-beginDefuseWithoutKit` <br /> `player-completed-explodeBomb` <br /> `player-completed-plantBomb` |
 
-<img src="./images/duringround_feeds.jpg" width="500" />
+<img src="./images/duringround_feeds.jpg" width="750" />
 
-Tracked in players' health 
-- `player-damaged-player`
-- `player-selfdamaged-player`
-- `player-teamdamaged-player`
+The events `player-damaged-player`, `player-selfdamaged-player` and `player-teamdamaged-player` are used to update players' health. Their total health consists of 2 bars - health (green) and armor (pink) - stacked to give viewers a quick glance of each player's status.
 
-<img src="./images/duringround_players_info_1.jpg" width="500" />
+<img src="./images/duringround_players_info_1.jpg" width="750" />
 
-Tracked in inventory
-- `player-dropped-item`
-- `player-pickedUp-item`
+The events `player-dropped-item` and `player-pickedUp-item` are used to track inventory changes. 
 
-<img src="./images/duringround_players_info_2.jpg" width="500" />
-
-When the round is not in progress, this page will indicate that the round has yet to start.
+<img src="./images/duringround_players_info_2.jpg" width="750" />
 
 ### Post Round
-This page updates when the event `game-ended-round` is received, and stops updating when `game-started-round` is received.
-
-The following events are captured as part of the updates to this page.
-- `team-won-round`
-- `team-won-game`
-
-In this page, we display a summarised view of all the rounds that have occurred up till the most recent round. Aside from providing basic information of the current status of the match (like map score), we display the team’s round performance which is the total number of kills of each team during the round. Next, we provide a tracker, displaying information around the individual player’s KDA as well as their bomb plants and defuses.
-
-<img src="./images/postround_kill_info.jpg" width="500" />
+This tab updates when the event `game-ended-round` is received, and stops updating when `game-started-round` is received. We display a summarised view of all the rounds (cumulative) that have occurred up till the most recent round. Aside from providing basic information of the current status of the match (like map score), we display the team’s round performance which is the total number of kills of each team during the round. Next, we provide a tracker, displaying information around the individual player’s stats as well as their bomb plants and defuses.
 
 <img src="./images/postround_kill_stats.jpg" width="500" />
+
+<img src="./images/postround_kill_info.jpg" width="500" />
 
 <img src="./images/postround_bomb_info.jpg" width="1000" />
 
@@ -95,7 +90,7 @@ In the economy winrate section,  we provide further insights around how the team
 - Half Buy Rounds
 - Full Buy Rounds
 
-After the rounds are classified, we calculate the win rate that the team has in each situation and compare. By providing insights around the team’s win rate in different situations, we can identify areas of improvements for the teams.
+After the rounds are classified, we calculate the win rate that the team has in each situation and compare them. By providing insights around the team’s win rate in different situations, we can identify areas of improvements for the teams.
 
 <img src="./images/postseries_econ_winrate.jpg" width="500" />
 
@@ -126,5 +121,5 @@ GitHub Repo: https://github.com/jfcheong/csgo_tournament_tracker
 3. In the repo root directory, run `pip install -r requirements.txt`, then run the web app with `streamlit run Home.py`
 
 ## References
-Brooks, 2023. How CS:GO Continues To Attract Players & Break Records: https://streamhatchet.com/blog/blog-how-csgo-continues-to-attract-players-break-records/ \
-Esports Charts, 2023. CS:GO - Esports Viewership and Statistics: https://escharts.com/games/csgo 
+Brooks, 2023. How CS\:GO Continues To Attract Players & Break Records: https://streamhatchet.com/blog/blog-how-csgo-continues-to-attract-players-break-records/ \
+Esports Charts, 2023. CS\:GO - Esports Viewership and Statistics: https://escharts.com/games/csgo 
