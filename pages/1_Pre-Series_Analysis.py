@@ -80,33 +80,34 @@ def get_match_score(state_dict):
 
     return match_score
 
-@st.cache_data  # 👈 Add the caching decorator
-def load_events():
-    url = "https://github.com/grid-esports/datajam-2023/raw/master/data_files/csgo.zip?download="
-    with urlopen(url) as zipresp:
-        zip_file = ZipFile(BytesIO(zipresp.read()))
-    files = zip_file.namelist()
-    with zip_file.open("csgo/CCT-Online-Finals-1/2579089_state.json", "r") as json_file:
-        finals_file = json.load(json_file)
-    with zip_file.open("csgo/CCT-Online-Finals-1/2579048_state.json", "r") as json_file:
-        semifinals_file1 = json.load(json_file)
-    with zip_file.open("csgo/CCT-Online-Finals-1/2578928_state.json", "r") as json_file:
-        semifinals_file2 = json.load(json_file)
-    return [finals_file,semifinals_file1,semifinals_file2]
+# @st.cache_data  # 👈 Add the caching decorator
+# def load_events():
+#     url = "https://github.com/grid-esports/datajam-2023/raw/master/data_files/csgo.zip?download="
+#     with urlopen(url) as zipresp:
+#         zip_file = ZipFile(BytesIO(zipresp.read()))
+#     files = zip_file.namelist()
+#     with zip_file.open("csgo/CCT-Online-Finals-1/2579089_state.json", "r") as json_file:
+#         finals_file = json.load(json_file)
+#     with zip_file.open("csgo/CCT-Online-Finals-1/2579048_state.json", "r") as json_file:
+#         semifinals_file1 = json.load(json_file)
+#     with zip_file.open("csgo/CCT-Online-Finals-1/2578928_state.json", "r") as json_file:
+#         semifinals_file2 = json.load(json_file)
+#     return [finals_file,semifinals_file1,semifinals_file2]
 
-# #this opens the final files
-# with open(f'../CCT-Online-Finals-1/2579089_state.json', 'r') as json_file:
-#     finals_file = json.load(json_file)
 
-# #this opens the semi-final files
-# with open(f'../CCT-Online-Finals-1/2579048_state.json', 'r') as json_file:
-#     semifinals_file1 = json.load(json_file)
+#this opens the final files
+with open(f'../CCT-Online-Finals-1/2579089_state.json', 'r') as json_file:
+    finals_file = json.load(json_file)
 
-# #this opens the second semi-final files
-# with open(f'../CCT-Online-Finals-1/2578928_state.json', 'r') as json_file:
-#     semifinals_file2 = json.load(json_file)
+#this opens the semi-final files
+with open(f'../CCT-Online-Finals-1/2579048_state.json', 'r') as json_file:
+    semifinals_file1 = json.load(json_file)
+
+#this opens the second semi-final files
+with open(f'../CCT-Online-Finals-1/2578928_state.json', 'r') as json_file:
+    semifinals_file2 = json.load(json_file)
  
-finals_file,semifinals_file1,semifinals_file2 = load_events()[0],load_events()[1],load_events()[2]
+# finals_file,semifinals_file1,semifinals_file2 = load_events()[0],load_events()[1],load_events()[2]
 match_date = finals_file["startedAt"].split("T")[0]
 st.subheader(f"Date of Match: {match_date}")
 match_result = get_match_result(finals_file, key='score')

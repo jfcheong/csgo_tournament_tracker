@@ -19,13 +19,13 @@ st.set_page_config(page_title="CSGO Post Series Analysis", page_icon=":gun:",
 @st.cache_data  
 def load_data():
     # simultaneously tracks inventory value per round while iterating to last state for performance optimization
-    # with open('../CCT-Online-Finals-1/2579089_events.jsonl', 'r') as jsonl_file:
-    #     json_list = list(jsonl_file)
-    url = "https://github.com/grid-esports/datajam-2023/raw/master/data_files/csgo.zip?download="
-    with urlopen(url) as zipresp:
-        zip_file = ZipFile(BytesIO(zipresp.read()))
-    with zip_file.open("csgo/CCT-Online-Finals-1/2579089_events.jsonl", "r") as json_file:
-        json_list = list(json_file)
+    with open('../CCT-Online-Finals-1/2579089_events.jsonl', 'r') as jsonl_file:
+        json_list = list(jsonl_file)
+    # url = "https://github.com/grid-esports/datajam-2023/raw/master/data_files/csgo.zip?download="
+    # with urlopen(url) as zipresp:
+    #     zip_file = ZipFile(BytesIO(zipresp.read()))
+    # with zip_file.open("csgo/CCT-Online-Finals-1/2579089_events.jsonl", "r") as json_file:
+    #     json_list = list(json_file)
     economy_per_round = []
     for line_item in json_list:
         line_item = json.loads(line_item)
