@@ -4,6 +4,7 @@ import pandas as pd
 from pandas.api.types import is_float_dtype
 import re
 
+IMG_URL = "https://raw.githubusercontent.com/jfcheong/csgo_tournament_tracker/main/assets/%s.png"
 
 def get_series_start_date(event):
     series_start = event["seriesState"]["startedAt"].split("T")[0]
@@ -316,6 +317,13 @@ def get_player_economy(event):
     players = get_player_state(event, granularity="game").filter(items=(default_fields + required_fields))
     return players.tail(10).reset_index(drop=True)
 
+def get_player_kda(kda_df, latest_round_df, player_df, index):
+    kda_filtered = kda_df.loc[(kda_df['name'] == player_df.loc[index, 'name']) & (
+            kda_df['map_name'] == latest_round_df.loc[latest_round_df['side'] == 'terrorists', 'map'].values[0])]
+    kda_str = kda_filtered["kills"].values[0].astype(str) + "/" + kda_filtered["deaths"].values[0].astype(
+        str) + "/" + kda_filtered["killAssistsGiven"].values[0].astype(str)
+    return kda_str
+
 def get_player_kdao(event, granularity):
     if granularity == "game":
         required_fields = ["^adr$", "^kills$", "^killAssistsGiven$", "^deaths$", "^multikills$", "objectives.*"]
@@ -389,6 +397,91 @@ def get_event_log(event):
 
     else:
         return None
+
+
+def get_match_result(state_dict, key):
+    teams = state_dict['teams']
+    result_dict = {}
+    for team in teams:
+        team_name = team['name']
+        value = team[key]
+        result_dict[team_name] = value
+    return result_dict
+
+
+def get_weapons_img_path(df, weapons_col=["loadout.primary", "loadout.secondary"]):
+    """ Gets image path from weapon name """
+    for col in weapons_col:
+        img_col = [IMG_URL % (str(val)) if val else "" for val in df[col]]
+        df[f"{col}.img"] = img_col
+    return df
+
+
+def _clean_text(s):
+    """ Cleans text into human Nreadable format """
+    s = s.replace("_", " ") # replace _ with space
+    s = re.sub(r'((?<=[a-z])[A-Z]|(?<!\A)[A-Z](?=[a-z]))', r' \1', s) # add space before capital letter
+    s = s.title() # title case
+    return s
+
+
+def format_items(loadout, exclude_col=["loadout.primary", "loadout.secondary"]):
+    """ Formats loadout items into list of lists """
+    cols = [col for col in loadout.columns.str.startswith('loadout.')
+                            if col not in exclude_col]
+    items = loadout.loc[:, cols].values.tolist()
+    return [cleaned if (cleaned := [_clean_text(elem) for elem in sublist 
+                                                    if elem is not None])
+                        else [None] for sublist in items]
+
+
+def compute_features(stats_df, upcoming_teams):
+    players = []
+    for team in upcoming_teams:
+        for player in team['players']:
+            info = (team['name'], player['name'], team['side'])
+            players.append(info)
+
+    try:
+        features_df = stats_df.loc[players]
+    except KeyError as e:
+        warnings.warn(f"{e}. Ignoring missing...", Warning)
+        features_df = stats_df.loc[stats_df.index.isin(players)]
+
+    features_df = features_df.reset_index()
+
+    features_df["playerNum"] = 'player_' + (
+        features_df.groupby("teamName")["avg_kills_per_game"].rank(method="first", ascending=False).astype(int).astype(
+            str))
+    features_df['teamNum'] = 'team_' + (
+        features_df['teamName'].rank(method='dense', ascending=True).astype(int).astype(str))
+
+    features_df = features_df.sort_values(["teamNum", "playerNum"], ascending=True)
+
+    return features_df
+
+
+def combine_and_pivot(features_list):
+    features = ['avg_endinghealth_per_round',
+                'avg_endingarmor_per_round', 'avg_damageDealt_per_round',
+                'avg_damageTaken_per_round', 'avg_kills_per_game',
+                'avg_deaths_per_game', 'avg_assists_per_game', 'avg_teamkills_per_game',
+                'avg_selfkills_per_game', 'avg_headshots_per_game',
+                'avg_bombs_defused_per_game', 'avg_bombs_exploded_per_game',
+                'avg_bombs_planted_per_game']
+
+    dfs = []
+    for cnt, df in enumerate(features_list):
+        df['gameNum'] = 'game_' + str(cnt)
+        dfs.append(df)
+    concat_df = pd.concat(dfs)
+
+    pivoted = concat_df.pivot(index='gameNum', columns=['teamNum', 'playerNum'], values=features).reset_index(drop=True)
+    pivoted.columns = ['_'.join(col) for col in pivoted.columns]
+
+    pivoted = pivoted.fillna(0)
+
+    return pivoted
 
 if __name__ == "__main__":
     print("Loaded utils")
