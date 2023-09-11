@@ -4,11 +4,11 @@ _**Elevating Every Move**: Your Ultimate CS\:GO Tournament Tracker_
 <img src="./images/logo.png" width="750" />
 
 ## Motivation
-Counter Strike: Global Offensive (CS:GO) has a massive following. The peak viewers for tournaments ranged from 1 million to 2.7 million in the past 5 years. In recent years, there are over 500 tournaments held per year, with combined prize pools ranging from 13 million to 18 million. (Esports Charts, 2023) Just last year, the game managed to be the 6th most watched game, with the majority of viewers watching through Twitch. Even though it is a decade old game, Counter Strike: Global Offensive still managed to attract a huge following the gaming boom during the COVID-19 pandemic. (Brooks, 2023)
+Counter Strike: Global Offensive (CS\:GO) has a massive following. The peak viewers for tournaments ranged from 1 million to 2.7 million in the past 5 years. In recent years, there are over 500 tournaments held per year, with combined prize pools ranging from 13 million to 18 million. (Esports Charts, 2023) Just last year, the game managed to be the 6th most watched game, with the majority of viewers watching through Twitch. Even though it is a decade old game, Counter Strike: Global Offensive still managed to attract a huge following the gaming boom during the COVID-19 pandemic. (Brooks, 2023)
 
 With current popular tracking tools and sites, stats and match updates are usually limited to post map or series data as viewers have to tune in to live event streams to keep updated on the play by play of the match. Even while watching live event streams, observers of the game are limited to viewing one player at any time, resulting in actions happening off screen to be missed by the viewers. With this in mind, a live event watch would augment the viewing experience by allowing users to catch off screen plays in the form of text and visual updates.
 
-GRID, which receives data straight from the game server, is the perfect data platform to build a CS:GO tournament tracker, allowing viewers to keep themselves updated while watching the match or on the go.
+GRID, which receives data straight from the game server, is the perfect data platform to build a CS\:GO tournament tracker, allowing viewers to keep themselves updated while watching the match or on the go.
 
 ## Pre-Series Analysis
 
@@ -36,10 +36,7 @@ Regardless of which tab the user navigates to, the match scores of each team wil
 ### Pre-Round
 This tab updates when the event `game-started-round` is received, and stops updating when `round-ended-freezetime` is received. The page reflects the status of the round during the buy time where players gear up prior to the round starting, showing the economy of each player and their loadouts. With the buy of each team easily accessible, viewers will be able to have an idea of the kind of strategy a team will be employing for the upcoming round such as saving during an eco-round or force buying as an aggressive strategy to change the rhythm of the game.
 
-The events tracked for this tab are:
-- `player-purchased-item`
-- `player-dropped-item`
-- `player-pickedUp-item`
+The events tracked for this tab are `player-purchased-item`, `player-dropped-item` and `player-pickedUp-item`.
 
 Each player is represented by a row in the inventory table, split by team. According to the event logs, the tables will auto-populate by showing the primary and secondary weapons, as well as the equipment bought by each player.
 
@@ -124,5 +121,5 @@ GitHub Repo: https://github.com/jfcheong/csgo_tournament_tracker
 3. In the repo root directory, run `pip install -r requirements.txt`, then run the web app with `streamlit run Home.py`
 
 ## References
-Brooks, 2023. How CS:GO Continues To Attract Players & Break Records: https://streamhatchet.com/blog/blog-how-csgo-continues-to-attract-players-break-records/ \
-Esports Charts, 2023. CS:GO - Esports Viewership and Statistics: https://escharts.com/games/csgo 
+Brooks, 2023. How CS\:GO Continues To Attract Players & Break Records: https://streamhatchet.com/blog/blog-how-csgo-continues-to-attract-players-break-records/ \
+Esports Charts, 2023. CS\:GO - Esports Viewership and Statistics: https://escharts.com/games/csgo 
