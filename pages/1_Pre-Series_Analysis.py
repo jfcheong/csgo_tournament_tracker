@@ -161,7 +161,7 @@ fig.add_trace(go.Bar(
     x=[team1_wr],
     name=team1,
     orientation='h',
-    text=f"{team1_wr}%",
+    text=f"{team1_wr}",
     textposition="inside",
     hoverinfo='none',
     marker=dict(
@@ -174,7 +174,7 @@ fig.add_trace(go.Bar(
     x=[team2_wr],
     name=team2,
     orientation='h',
-    text=f"{team2_wr}%",
+    text=f"{team2_wr}",
     hoverinfo='none',
     marker=dict(
         color='#434348',
