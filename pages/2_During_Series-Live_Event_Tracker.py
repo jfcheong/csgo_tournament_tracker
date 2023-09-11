@@ -10,6 +10,9 @@ import streamlit.components.v1 as components
 from highcharts_excentis import Highchart
 import altair as alt
 import plotly.express as px  # interactive charts
+from io import BytesIO
+from urllib.request import urlopen
+from zipfile import ZipFile
 
 sys.path.append('../')
 from utils import utils
@@ -17,17 +20,35 @@ from utils import utils
 st.set_page_config(page_title="CSGO Live Event Tracker", page_icon=":gun:",
     layout="wide", initial_sidebar_state="auto", menu_items=None)
 
-# Load events jsonl file
+# # Load events jsonl file
 def load_state():
-    with open('../CCT-Online-Finals-1/2578928_state.json', 'r') as json_file:
+    with open('./data/CCT-Online-Finals-1/2578928_state.json', 'r') as json_file:
         state = json.load(json_file)
     return state
 
 @st.cache_data  # 👈 Add the caching decorator
 def load_events():
-    with open('../CCT-Online-Finals-1/2579089_events.jsonl', 'r') as jsonl_file:
+    with open('./data/CCT-Online-Finals-1/2579089_events.jsonl', 'r') as jsonl_file:
         json_list = list(jsonl_file)
     return json_list
+
+# @st.cache_data  # 👈 Add the caching decorator
+# def load_state():
+#     url = "https://github.com/grid-esports/datajam-2023/raw/master/data_files/csgo.zip?download="
+#     with urlopen(url) as zipresp:
+#         zip_file = ZipFile(BytesIO(zipresp.read()))
+#     with zip_file.open("csgo/CCT-Online-Finals-1/2578928_state.json", "r") as json_file:
+#         state = json.load(json_file)
+#     return state
+
+# @st.cache_data  # 👈 Add the caching decorator
+# def load_events():
+#     url = "https://github.com/grid-esports/datajam-2023/raw/master/data_files/csgo.zip?download="
+#     with urlopen(url) as zipresp:
+#         zip_file = ZipFile(BytesIO(zipresp.read()))
+#     with zip_file.open("csgo/CCT-Online-Finals-1/2579089_events.jsonl", "r") as json_file:
+#         json_list = json.load(json_file)
+#     return json_list
 
 # Load data
 full_events = load_events()
