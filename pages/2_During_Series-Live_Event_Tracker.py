@@ -63,14 +63,17 @@ match_date = state["startedAt"].split("T")[0]
 format = state["format"].replace('-', ' ').capitalize()
 match_result = utils.get_match_result(state, key='score')
 final_teams = list(match_result.keys())
+match_score = list(match_result.values())
 team1=final_teams[0]
 team2=final_teams[1]
+team1_score=match_score[0]
+team2_score=match_score[1]
 forze_url = "https://preview.redd.it/new-forze-logo-v0-x31u5t3sg8ba1.png?width=600&format=png&auto=webp&s=041b6912e65d06e150219f63f79dc05b911e9c04"
 ecstatic_url = "https://img-cdn.hltv.org/teamlogo/Ox1eFAB6o8VM6jwgPbQuks.svg?ixlib=java-2.1.0&s=66680f6d946ff4a93bc311f3bbab8d9e"
 
 # Streamlit Visuals
 ## Top Header Section
-col1, col2 = st.columns([5,1])
+col1, col2 = st.columns([5, 1])
 with col1:
     st.title("During Series")
 with col2:
@@ -86,18 +89,18 @@ with col3:
 
 components.html(
     f"""
-    <div style="height:200px; background-color:#F0F2F6;display: grid;column-gap: 2%;grid-template-columns: auto auto;padding: 10px;">
-        <div style="text-align: center;">
-            <h3 style="color:black;font-family:Sans-Serif;">{team1}</h3>
+    <div style="height:200px; background-color:#F0F2F6;display: grid;column-gap: 30px;grid-template-columns: auto auto auto;padding: 10px;">
+        <div style="text-align: right;">
+            <h3 style="color:black; font-family:sans-serif">{team1}</h3>
             <img style="height:50px;" src="{ecstatic_url}" />
         </div>
 
-        <div style="text-align: center;">
-            <h3 style="color:black;font-family:Sans-Serif;">{team2}</h3>
+        <h3 style="color:black;font-size:40px;;text-align: center;font-family:sans-serif ">{team1_score} - {team2_score}</h3>
+        <div style="text-align: left;">
+            <h3 style="color:black;font-family:sans-serif">{team2}</h3>
             <img style="height:50px;" src="{forze_url}" />
         </div>
     </div>
-
     """
 )
 
@@ -125,12 +128,12 @@ with duringround_tab:
 with postround_tab:
     placeholder = st.empty()
     placeholder2 = st.empty()
-    map1 = "Inferno"
+
     for event_num in range(len(end_events_list)):
         selected_event_list = end_events_list[event_num]["events"]
         for j in range(len(selected_event_list)):
             selected_event = selected_event_list[j]
-            map = utils.get_team_info(selected_event, granularity="game").iloc[[-1]]["map"]
+            map = utils.get_team_info(selected_event, granularity="game").iloc[-1, 1].capitalize()
 
         with placeholder.container():
             full_df = utils.get_team_info(selected_event, granularity="round")
@@ -185,15 +188,15 @@ with postround_tab:
                                        'Bomb_StartDefuse_WithoutKit', 'Bomb_Defused', 'Bomb_Exploded']]
 
             st.markdown("#### Kill Information")
-            st.markdown(f"##### Team: :blue[{team1}]")
+            st.markdown(f"##### Team - :blue[{team1}]")
             st.table(team1_killInfo)
-            st.markdown(f"##### Team: :blue[{team2}]")
+            st.markdown(f"##### Team - :blue[{team2}]")
             st.table(team2_killInfo)
 
             st.markdown("#### Bomb Information")
-            st.markdown(f"##### Team: :blue[{team1}]")
+            st.markdown(f"##### Team - :blue[{team1}]")
             st.table(team1_bombInfo)
-            st.markdown(f"##### Team: :blue[{team2}]")
+            st.markdown(f"##### Team - :blue[{team2}]")
             st.table(team2_bombInfo)
 
             time.sleep(0.5)
@@ -212,13 +215,14 @@ display_cols = ["name", "loadout.primary.img", "loadout.secondary.img",
                  "Equipment", "inventoryValue", "money" ]
 kill_log_list = []
 obj_log_list = []
+obj_log_list_dedup = []
 
 for event_num in range(len(r2_events_list)):
-
     # Load event data
     selected_event_list = r2_events_list[event_num]["events"]
     for j in range(len(selected_event_list)):
         selected_event = selected_event_list[j]
+        economy = utils.get_player_economy(selected_event).fillna('')
         pha = utils.get_player_health_armor(selected_event)
         kda = utils.get_player_kdao(selected_event, 'game')
         gti = utils.get_team_info(selected_event, 'round')
@@ -303,41 +307,37 @@ for event_num in range(len(r2_events_list)):
 
         with col1:
             st.subheader("Kills", divider='grey')
-            # kill_log_list = list(set(kill_log_list))
             kill_log_list.sort(reverse=False)
-            kills_df = pd.DataFrame(kill_log_list, columns=['round_time', 'actor', 'weapon', 'target'])
-            kills_df = utils.get_weapons_img_path(kills_df, ["weapon"])
-            st.dataframe(kills_df,
-                         column_config={"weapon": st.column_config.ImageColumn(label="weapon", width='small')},
+            kills_df = pd.DataFrame(kill_log_list, columns=['Round_Time', 'Player', 'Weapon', 'Target'])
+            kills_df = utils.get_weapons_img_path(kills_df, ['Weapon'])
+            st.dataframe(kills_df[['Round_Time', 'Player', 'Weapon.img', 'Target']],
+                         column_config={"Weapon.img": st.column_config.ImageColumn(label="Weapon", width='small')},
                          hide_index=True, use_container_width=True)
 
         with col2:
             st.subheader("Objectives", divider='grey')
-            # obj_log_list = list(set(obj_log_list))
-            obj_log_list.sort(reverse=False)
-            obj_df = pd.DataFrame(obj_log_list, columns=['objective_log'])
+            for item in obj_log_list:
+                if item not in obj_log_list_dedup:
+                    obj_log_list_dedup.append(item)
+            obj_log_list_dedup.sort(reverse=False)
+            obj_df = pd.DataFrame(obj_log_list_dedup, columns=['Objectives'])
             st.dataframe(obj_df, hide_index=True, use_container_width=True)
 
         with st.container():
-            st.markdown("***Note: Round time is counted down and ends at 0:00***")
+            st.markdown("***Note: Game clock is counted down and round time ends at 0:00.***")
 
         # Players' Info Section
         st.subheader("Players' Info", divider='grey')
         colors = ['#edb5b5', '#52c222']
-        with st.container():
-            components.html("""
-                        <div style="text-align: center;">
-                                <h4 style="color:black;font-family: Cambria, Georgia, serif;">Legend</h4>
-                                <img style="height:60px;" src="https://drive.google.com/uc?export=view&id=13PSGt16GwmH4SxLK1vJEObH2i6OL3W7Z" />
-                            </div>
-                        """)
-
         col_t, col_ct = st.columns(2)
+        with st.container():
+            st.markdown(
+                "***Note: Players are dead once Health and Armor bar depletes to zero. Once players are dead, their inventory will be empty too.***")
 
         with (col_t):
             st.markdown("#### Terrorists")
             team_t = gti_latest_round.loc[gti_latest_round['side'] == 'terrorists', 'name'].values[0]
-            st.markdown(f"##### Team: :blue[{team_t}]")
+            st.markdown(f"##### Team - :blue[{team_t}]")
             pha_filtered = pha.loc[pha['team'] == team_t].reset_index(drop=True)
             df_t = pha_filtered.set_index('name')
             df_t = pha_filtered.pivot(index="name", columns="team",
@@ -346,11 +346,17 @@ for event_num in range(len(r2_events_list)):
                 .mark_bar(clip=True).encode(
                 x=alt.X('value:Q', stack='zero', scale=alt.Scale(domain=(0, 200)), title=''),
                 y=alt.Y('name', title=''),
-                color=alt.Color('key:N').legend(None),
-                ).properties(width=300, height=200
-                             ).repeat(layer=["currentHealth", "currentArmor"]
+                order='color_value_sort_index:Q',
+                color=alt.Color('key:N',).legend(None)
+                ).properties(width=300, height=200).repeat(layer=['currentHealth', 'currentArmor']
                                       ).configure_range(category=alt.RangeScheme(colors))
             bar_chart_day
+            with st.container():
+                components.html("""
+                            <div style="text-align: right;">
+                                    <img style="height:50px;" src="" />
+                                </div>
+                            """)
 
             for i in range(len(pha_filtered)):
                 lo_filtered = lo.loc[(lo['team'] == team_t) & (lo['name'] == pha_filtered.loc[i, 'name'])].filter(
@@ -360,7 +366,7 @@ for event_num in range(len(r2_events_list)):
                     columns={'loadout.primary.img': 'Primary', 'loadout.secondary.img': 'Secondary',
                              'loadout.melee.img': 'Melee'})
                 st.markdown(
-                    f"##### Player {i + 1}: {pha_filtered.loc[i, 'name']} ({utils.get_player_kda(kda, gti_latest_round, pha_filtered, i)})")
+                    f"##### Player {i + 1} - {pha_filtered.loc[i, 'name']} ({utils.get_player_kda(kda, gti_latest_round, pha_filtered, i)})")
                 st.dataframe(lo_mapped[["Primary", "Secondary", "Melee"]], column_config={
                     "Primary": st.column_config.ImageColumn(label="Primary", width='small'),
                     "Secondary": st.column_config.ImageColumn(label="Secondary", width='small'),
@@ -370,7 +376,7 @@ for event_num in range(len(r2_events_list)):
         with (col_ct):
             st.markdown("#### Counter Terrorists")
             team_ct = gti_latest_round.loc[gti_latest_round['side'] == 'counter-terrorists', 'name'].values[0]
-            st.markdown(f"##### Team: :blue[{team_ct}]")
+            st.markdown(f"##### Team - :blue[{team_ct}]")
             pha_filtered = pha.loc[pha['team'] == team_ct].reset_index(drop=True)
             df_ct = pha_filtered.set_index('name')
             df_ct = pha_filtered.pivot(index="name", columns="team",
@@ -379,11 +385,17 @@ for event_num in range(len(r2_events_list)):
                 .mark_bar(clip=True).encode(
                 x=alt.X('value:Q', stack='zero', scale=alt.Scale(domain=(0, 200)), title=''),
                 y=alt.Y('name', title=''),
-                color=alt.Color('key:N').legend(None),
-                ).properties(width=300, height=200
-                             ).repeat(layer=["currentHealth", "currentArmor"]
-                                      ).configure_range(category=alt.RangeScheme(colors))
+                order='color_value_sort_index:Q',
+                color=alt.Color('key:N',).legend(None)
+                ).properties(width=300, height=200).repeat(layer=['currentHealth', 'currentArmor']
+                                                       ).configure_range(category=alt.RangeScheme(colors))
             bar_chart_day
+            with st.container():
+                components.html("""
+                            <div style="text-align: right;">
+                                    <img style="height:50px;" src="https://raw.githubusercontent.com/jfcheong/csgo_tournament_tracker/main/assets/legend.png" />
+                                </div>
+                            """)
 
             for i in range(len(pha_filtered)):
                 lo_filtered = lo.loc[(lo['team'] == team_ct) & (lo['name'] == pha_filtered.loc[i, 'name'])].filter(
@@ -393,10 +405,10 @@ for event_num in range(len(r2_events_list)):
                     columns={'loadout.primary.img': 'Primary', 'loadout.secondary.img': 'Secondary',
                              'loadout.melee.img': 'Melee'})
                 st.markdown(
-                    f"##### Player {i + 1}: {pha_filtered.loc[i, 'name']} ({utils.get_player_kda(kda, gti_latest_round, pha_filtered, i)})")
+                    f"##### Player {i + 1} - {pha_filtered.loc[i, 'name']} ({utils.get_player_kda(kda, gti_latest_round, pha_filtered, i)})")
                 st.dataframe(lo_mapped[["Primary", "Secondary", "Melee"]], column_config={
                     "Primary": st.column_config.ImageColumn(label="Primary", width='small'),
                     "Secondary": st.column_config.ImageColumn(label="Secondary", width='small'),
                     "Melee": st.column_config.ImageColumn(label="Melee", width='small'),
                 }, hide_index=True)
-        time.sleep(0.1)
+        time.sleep(0.3)
