@@ -435,5 +435,53 @@ def format_items(loadout, exclude_col=["loadout.primary", "loadout.secondary"]):
                         else [None] for sublist in items]
 
 
+def compute_features(stats_df, upcoming_teams):
+    players = []
+    for team in upcoming_teams:
+        for player in team['players']:
+            info = (team['name'], player['name'], team['side'])
+            players.append(info)
+
+    try:
+        features_df = stats_df.loc[players]
+    except KeyError as e:
+        warnings.warn(f"{e}. Ignoring missing...", Warning)
+        features_df = stats_df.loc[stats_df.index.isin(players)]
+
+    features_df = features_df.reset_index()
+
+    features_df["playerNum"] = 'player_' + (
+        features_df.groupby("teamName")["avg_kills_per_game"].rank(method="first", ascending=False).astype(int).astype(
+            str))
+    features_df['teamNum'] = 'team_' + (
+        features_df['teamName'].rank(method='dense', ascending=True).astype(int).astype(str))
+
+    features_df = features_df.sort_values(["teamNum", "playerNum"], ascending=True)
+
+    return features_df
+
+
+def combine_and_pivot(features_list):
+    features = ['avg_endinghealth_per_round',
+                'avg_endingarmor_per_round', 'avg_damageDealt_per_round',
+                'avg_damageTaken_per_round', 'avg_kills_per_game',
+                'avg_deaths_per_game', 'avg_assists_per_game', 'avg_teamkills_per_game',
+                'avg_selfkills_per_game', 'avg_headshots_per_game',
+                'avg_bombs_defused_per_game', 'avg_bombs_exploded_per_game',
+                'avg_bombs_planted_per_game']
+
+    dfs = []
+    for cnt, df in enumerate(features_list):
+        df['gameNum'] = 'game_' + str(cnt)
+        dfs.append(df)
+    concat_df = pd.concat(dfs)
+
+    pivoted = concat_df.pivot(index='gameNum', columns=['teamNum', 'playerNum'], values=features).reset_index(drop=True)
+    pivoted.columns = ['_'.join(col) for col in pivoted.columns]
+
+    pivoted = pivoted.fillna(0)
+
+    return pivoted
+
 if __name__ == "__main__":
     print("Loaded utils")
