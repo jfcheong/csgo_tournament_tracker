@@ -1,23 +1,19 @@
-import streamlit as st
-import pandas as pd
-import streamlit as st
-import streamlit.components.v1 as components
-import plotly.graph_objects as go
 import json
-from datetime import date
-import pandas as pd
-import numpy as np
-from highcharts_excentis import Highchart
+
 import keras
 import numpy as np
+import pandas as pd
+import plotly.graph_objects as go
+import streamlit as st
+import streamlit.components.v1 as components
+from highcharts_excentis import Highchart
+
 from utils import utils
-from io import BytesIO
-from urllib.request import urlopen
-from zipfile import ZipFile
-import json
 
 st.set_page_config(page_title="CSGO Pre-Series Analysis", page_icon=":gun:", 
     layout="wide", initial_sidebar_state="auto", menu_items=None)
+
+utils.download_data()
 
 st.title("Upcoming Series")
 

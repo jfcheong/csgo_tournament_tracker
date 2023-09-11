@@ -1,25 +1,19 @@
-import sys
 import json
-from datetime import date
-import time
-import pandas as pd
-from pandas.api.types import is_float_dtype
 import re
+import time
+
+import altair as alt
+import pandas as pd
+import plotly.express as px  # interactive charts
 import streamlit as st
 import streamlit.components.v1 as components
-from highcharts_excentis import Highchart
-import altair as alt
-import plotly.express as px  # interactive charts
-from io import BytesIO
-from urllib.request import urlopen
-from zipfile import ZipFile
-import json
 
-sys.path.append('../')
 from utils import utils
 
 st.set_page_config(page_title="CSGO Live Event Tracker", page_icon=":gun:",
     layout="wide", initial_sidebar_state="auto", menu_items=None)
+
+utils.download_data()
 
 # Load events jsonl file
 def load_state():
