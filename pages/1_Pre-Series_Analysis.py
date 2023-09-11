@@ -77,15 +77,15 @@ def get_match_score(state_dict):
     return match_score
 
 #this opens the final files
-with open(f'../CCT-Online-Finals-1/2579089_state.json', 'r') as json_file:
+with open(f'./data/CCT-Online-Finals-1/2579089_state.json', 'r') as json_file:
     finals_file = json.load(json_file)
 
 #this opens the semi-final files
-with open(f'../CCT-Online-Finals-1/2579048_state.json', 'r') as json_file:
+with open(f'./data/CCT-Online-Finals-1/2579048_state.json', 'r') as json_file:
     semifinals_file1 = json.load(json_file)
 
 #this opens the second semi-final files
-with open(f'../CCT-Online-Finals-1/2578928_state.json', 'r') as json_file:
+with open(f'./data/CCT-Online-Finals-1/2578928_state.json', 'r') as json_file:
     semifinals_file2 = json.load(json_file)
  
 

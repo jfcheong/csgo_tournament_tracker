@@ -15,7 +15,7 @@ st.set_page_config(page_title="CSGO Post Series Analysis", page_icon=":gun:",
 @st.cache_data  
 def load_data():
     # simultaneously tracks inventory value per round while iterating to last state for performance optimization
-    with open('../CCT-Online-Finals-1/2579089_events.jsonl', 'r') as jsonl_file:
+    with open('./data/CCT-Online-Finals-1/2579089_events.jsonl', 'r') as jsonl_file:
         json_list = list(jsonl_file)
     economy_per_round = []
     for line_item in json_list:

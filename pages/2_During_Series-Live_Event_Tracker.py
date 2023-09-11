@@ -19,13 +19,13 @@ st.set_page_config(page_title="CSGO Live Event Tracker", page_icon=":gun:",
 
 # Load events jsonl file
 def load_state():
-    with open('../CCT-Online-Finals-1/2578928_state.json', 'r') as json_file:
+    with open('./data/CCT-Online-Finals-1/2578928_state.json', 'r') as json_file:
         state = json.load(json_file)
     return state
 
 @st.cache_data  # 👈 Add the caching decorator
 def load_events():
-    with open('../CCT-Online-Finals-1/2579089_events.jsonl', 'r') as jsonl_file:
+    with open('./data/CCT-Online-Finals-1/2579089_events.jsonl', 'r') as jsonl_file:
         json_list = list(jsonl_file)
     return json_list
 
