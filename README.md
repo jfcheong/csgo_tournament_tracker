@@ -11,6 +11,43 @@ With current popular tracking tools and sites, stats and match updates are usual
 GRID, which receives data straight from the game server, is the perfect data platform to build a CS\:GO tournament tracker, allowing viewers to keep themselves updated while watching the match or on the go.
 
 ## Pre-Series Analysis
+This page is updated before each series occurs, providing viewers with an overview of the upcoming series. 
+
+On this page, viewers will be able to:
+- Identify the teams that will be playing in the upcoming series
+- View comprehensive statistics of each team, including key metrics like Kills, Deaths, Assists, and the Average Damage per Round for each individual player based on their preceding matches.
+- Predict which team is more likely to win the upcoming series
+
+### Series Win Prediction 
+To help viewers predict the odds of each team winning the upcoming match, a deep learning model has been trained using Tensorflow based on information gathered from the previous series. 
+
+Trying to predict the winning team is a complex problem, and there are many factors that can impact the odds of the team winning. This can include, but is not limited to:
+- Individual Player performance (e.g. Player KDA statistics, years of experience)
+- Team dynamics (e.g. how long has the current team roster been playing together)
+- Coach experience and strategies
+- Player condition on that day
+
+Currently, only individual player performance is considered in the scope. Additional features can be used to augment the model at a later time.
+
+The algorithm of the model is as follows:
+1. First, the raw player statistics per round is extracted from all the preceding series and merged together into a single dataframe.
+2. These statistics are then aggregated to per-game level, split by side (`terrorists`/`counter-terrorist`), forming these 13 features:
+   |   |   |   |   |   
+   | -------- | ------- | ------- | -------- | 
+   | `avg_kills_per_game` | `avg_deaths_per_game` |  `avg_assists_per_game` | `avg_teamkills_per_game` | 
+   | `avg_selfkills_per_game`|`avg_headshots_per_game` |  `avg_bombs_defused_per_game` | `avg_bombs_planted_per_game` |
+   | `avg_bombs_exploded_per_game` | `avg_endinghealth_per_round` |`avg_endingarmor_per_round` |  `avg_damageDealt_per_round` |
+   | `avg_damageTaken_per_round` |  | | 
+
+    To avoid introducing look-ahead bias to the model, the features are computed on a rolling average basis.
+    In other words, features for game 4 are computed by aggregating information seen from games 1-3; 
+    for game 5, information from games 1-4 were used, and so on.
+4. To account for team dynamics and also factor in the opposing team, these features are then pivoted such that each row represents the information of all 10 players in the game. This results in there being a total of 130 features per game (13 features x 10 players). Player and team names are masked with aliases, with player_1 being the player with the highest `avg_kills_per_game` for that team
+5. This dataset is then fed into a deep learning model using Tensorflow with 2 hidden layers. Dropout layers were also added to try to minimize overfitting of the model.
+
+The trained model can be found in the `/model` folder, and a Jupyter notebook detailing this algorithm can be found in the `/notebooks` folder.
+
+Before the start of every series, the aggregated player statistics dataset is updated with the latest information (`/model/agg_player_stats.csv`). For each of the players playing in the upcoming series, the player's statistics are then fetched and fed to the model. Finally, the likelihood of winning each game is then averaged to give an overall series win probability score.
 
 ## During Series Event Tracker
 The tracker is designed with the vision to support live data feeds, updating the pre-round, during round and post round statistics whenever an update is received. 
