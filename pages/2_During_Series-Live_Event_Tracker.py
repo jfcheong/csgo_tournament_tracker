@@ -115,13 +115,13 @@ components.html(
     <div style="height:200px; background-color:#F0F2F6;display: grid;column-gap: 30px;grid-template-columns: auto auto auto;padding: 10px;">
         <div style="text-align: right;">
             <h3 style="color:black; font-family:sans-serif">{team1}</h3>
-            <img style="height:50px;" src="{ecstatic_url}" />
+            <img style="height:50px;" src="{forze_url}" />
         </div>
 
         <h3 style="color:black;font-size:40px;;text-align: center;font-family:sans-serif ">{team1_score} - {team2_score}</h3>
         <div style="text-align: left;">
             <h3 style="color:black;font-family:sans-serif">{team2}</h3>
-            <img style="height:50px;" src="{forze_url}" />
+            <img style="height:50px;" src="{ecstatic_url}" />
         </div>
     </div>
     """
