@@ -13,18 +13,77 @@ GRID, which receives data straight from the game server, is the perfect data pla
 ## Pre-Series Analysis
 
 ## During Series Event Tracker
+The tracker is designed with the vision to support live data feeds, updating the pre-round, during round and post round statistics whenever an update is received. 
+
+The following are event types that start and stop updating the each tab in this page:
+|  | Event Type to Start Update | Event Type to Stop Update | Rationale |
+| -------- | ------- | ------- | -------- |
+| Pre-Round  | `game-started-round` | `round-ended-freezetime` | Buy time |
+| During Round | `round-ended-freezetime` | `game-ended-round` | Actual gameplay - after buy time and before round ends |
+| Post Round | `game-ended-round` | `game-started-round` | Post round, updated after round ended and before next round starts |
+
+### Pre-Round
+This page updates when the event `game-started-round` is received, and stops updating when `round-ended-freezetime` is received. The page reflects the status of the round during the buy-phase where players gear up prior to the round starting, showing the economy of each player and their loadouts. With the buy of each team easily accessible, viewers will be able to have an idea of the kind of strategy a team will be employing for the upcoming round such as saving during an eco-round or force buying as an aggressive strategy to change the rhythm of the game.
+
+The events tracked for this tab are:
+- `player-purchased-item`
+- `player-dropped-item`
+- `player-pickedUp-item`
+
+Each player is represented by a row in the inventory table, split by team. According to the event logs, the tables will auto-populate by showing the primary and secondary weapons, as well as the equipment bought by each player.
+
+When the round is in progress, this page will indicate that the buy time is over.
+
+<img src="./images/preround_economy.jpg" width="500" />
+
+### During Round
+This page is the live event feed of the play by play during the round between the events `round-ended-freezetime` and `game-ended-round`. It features the players’ information including their loadouts, health, kill feed and objectives. This live event feed allows viewers to view information on demand as the round progresses, allowing live analysis or viewers who are unable to view the live event streams to keep up with the match all the same. 
+
+The following are the event types mapped to each feed:
+| Kills | Objectives |
+| -------- | ------- |
+| `player-killed-player` <br /> `player-teamkilled-player` <br /> `player-selfkilled-player` | `player-completed-defuseBomb` <br /> `player-completed-beginDefuseWithKit`  <br /> `player-completed-beginDefuseWithoutKit` <br /> `player-completed-explodeBomb` <br /> `player-completed-plantBomb` |
+
+<img src="./images/duringround_feeds.jpg" width="500" />
+
+Tracked in players' health 
+- `player-damaged-player`
+- `player-selfdamaged-player`
+- `player-teamdamaged-player`
+
+<img src="./images/duringround_players_info_1.jpg" width="500" />
+
+Tracked in inventory
+- `player-dropped-item`
+- `player-pickedUp-item`
+
+<img src="./images/duringround_players_info_2.jpg" width="500" />
+
+When the round is not in progress, this page will indicate that the round has yet to start.
+
+### Post Round
+This page updates when the event `game-ended-round` is received, and stops updating when `game-started-round` is received.
+
+The following events are captured as part of the updates to this page.
+- `team-won-round`
+- `team-won-game`
+
+In this page, we display a summarised view of all the rounds that have occurred up till the most recent round. Aside from providing basic information of the current status of the match (like map score), we display the team’s round performance which is the total number of kills of each team during the round. Next, we provide a tracker, displaying information around the individual player’s KDA as well as their bomb plants and defuses.
+
+<img src="./images/postround_kill_info.jpg" width="500" />
+
+<img src="./images/postround_kill_stats.jpg" width="500" />
+
+<img src="./images/postround_bomb_info.jpg" width="1000" />
 
 ## Post Series Analysis
-
 The objectives of this page are:
 - View results of the series
 - Display a brief summary of both the team performance and the individual player performance across the entire series
 - Show insights around team performance in different economic situations
 - View more detailed information of player performance across the different maps
 
-| Event Type to Start Updating    | Event Type to Stop Updating |
-| -------- | ------- |
-| `series-ended-game` | `series-started-game` |
+The event types that start and stop updating this page are `series-ended-game` and `series-started-game` respectively.
 
 Apart from displaying the series results, we also present the Series MVP, which is the player with the highest Average Damage Per Round (ADR) score, along with this player’s statistics like Kills Deaths Assists (KDA) information. In this page, we present both overview information and insights around the team and individual player’s performance across the full series. 
 
@@ -46,7 +105,7 @@ The following section displays comparisons between the two team’s individual p
 
 <img src="./images/postseries_team_multikills.jpg" width="500" />
 
-Lastly, we present some statistics around Player performance across each individual map, as well as the combined statistics for all maps. In this section, we display information like KDA, ADR and KDA Ratio.
+Lastly, we present some statistics around Player performance across each individual map, as well as the combined statistics for all maps. In this section, we display information like KDA, ADR and KDA Ratio. Users can choose to view the cumulative statistics across series, or by game (map).
 
 <img src="./images/postseries_team_stats.jpg" width="500" />
 
