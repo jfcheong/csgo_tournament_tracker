@@ -515,8 +515,8 @@ def download_data():
 
         # Delete zip file and folders
         os.remove(filename)
-        os.rmdir(os.path.join('data', '__MACOSX'))
-        os.rmdir(os.path.join('data', 'csgo'))
+        shutil.rmtree(os.path.join('data', '__MACOSX'), ignore_errors=True)
+        shutil.rmtree(os.path.join('data', 'csgo'), ignore_errors=True)
 
 if __name__ == "__main__":
     print("Loaded utils")
