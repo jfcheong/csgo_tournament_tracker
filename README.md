@@ -11,12 +11,21 @@ With current popular tracking tools and sites, stats and match updates are usual
 GRID, which receives data straight from the game server, is the perfect data platform to build a CS\:GO tournament tracker, allowing viewers to keep themselves updated while watching the match or on the go.
 
 ## Pre-Series Analysis
-This page is updated at the end of every series (`tournament-ended-series`) and before the start of the next (`tournament-started-series`), providing viewers with an overview of the match history and upcoming series. 
+This page is updated at the end of every series (`tournament-ended-series`) and before the start of the next (`tournament-started-series`), providing viewers with an overview of the match history and upcoming series.
 
-On this page, viewers will be able to:
-- Identify the teams that will be playing in the upcoming series
-- View each team's match history, together with each player's Kill Death Assist Ratio (ADR) so far
-- Predict which team is more likely to win the upcoming series
+The objectives of this page are:
+- To present the teams playing in the upcoming series
+- Predict the odds of each team winning
+- Showcase historical winning statistics
+
+This page is used to give viewers an overview of the upcoming series, allowing them to know what the next matches are according to the brackets. 
+
+On this page, viewers will be able to identify the teams that will be playing in the upcoming series, view each team's match history with each player's Kill Death Assist Ratio (ADR), and view predictions on which team is more likely to win the upcoming series.
+
+<img src="./images/preseries_team_comp_winrate_predictions.jpg" width="500" />
+<img src="./images/preseries_game_history.jpg" width="750" />
+
+The approach to generating the predictions is explained in the following section.
 
 ### Series Win Prediction 
 To help viewers predict the odds of each team winning the upcoming match, a deep learning model has been trained using Tensorflow based on information gathered from the previous series. 
