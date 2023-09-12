@@ -44,7 +44,7 @@ The algorithm of the model is as follows:
 
     | Game Level | Round Level |
     | -------- | ------- |
-    | `avg_kills_per_game` <br /> `avg_deaths_per_game` <br /> `avg_assists_per_game` <br /> `avg_teamkills_per_game` <br /> `avg_selfkills_per_game` <br /> `avg_headshots_per_game` <br /> `avg_bombs_defused_per_game` | `avg_endinghealth_per_round` <br /> `avg_endingarmor_per_round`  <br /> `avg_damageDealt_per_round` <br /> `avg_damageTaken_per_round` |
+    | `avg_kills_per_game` <br /> `avg_deaths_per_game` <br /> `avg_assists_per_game` <br /> `avg_teamkills_per_game` <br /> `avg_selfkills_per_game` <br /> `avg_headshots_per_game` <br /> `avg_bombs_defused_per_game` <br /> `avg_bombs_planted_per_game` <br /> `avg_bombs_exploded_per_game` | `avg_endinghealth_per_round` <br /> `avg_endingarmor_per_round`  <br /> `avg_damageDealt_per_round` <br /> `avg_damageTaken_per_round` |
 
     To avoid introducing look-ahead bias to the model, the features are computed on a rolling average basis.
     
