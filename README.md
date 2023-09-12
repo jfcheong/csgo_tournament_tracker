@@ -158,7 +158,7 @@ Lastly, we present some statistics around Player performance across each individ
 - Machine Learning: TensorFlow, Keras
 
 ## Try It Out
-GitHub Repo: https://github.com/jfcheong/csgo_tournament_tracker
+GitHub Repo: https://github.com/TeoMinSi/csgo_tournament_tracker
 
 ### How to Run Locally
 
