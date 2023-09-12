@@ -40,17 +40,15 @@ Currently, only individual player performance is considered in the scope. Additi
 
 The algorithm of the model is as follows:
 1. First, the raw player statistics per round is extracted from all the preceding series and merged together into a single dataframe.
-2. These statistics are then aggregated to per-game level, split by side (`terrorists`/`counter-terrorist`), forming these 13 features:
-   |   |   |   |   |   
-   | -------- | ------- | ------- | -------- | 
-   | `avg_kills_per_game` | `avg_deaths_per_game` |  `avg_assists_per_game` | `avg_teamkills_per_game` | 
-   | `avg_selfkills_per_game`|`avg_headshots_per_game` |  `avg_bombs_defused_per_game` | `avg_bombs_planted_per_game` |
-   | `avg_bombs_exploded_per_game` | `avg_endinghealth_per_round` |`avg_endingarmor_per_round` |  `avg_damageDealt_per_round` |
-   | `avg_damageTaken_per_round` |  | | 
+2. These statistics are then aggregated to game and round levels, split by side (`terrorists`/`counter-terrorist`), forming these 13 features:
+
+    | Game Level | Round Level |
+    | -------- | ------- |
+    | `avg_kills_per_game` <br /> `avg_deaths_per_game` <br /> `avg_assists_per_game` <br /> `avg_teamkills_per_game` <br /> `avg_selfkills_per_game` <br /> `avg_headshots_per_game` <br /> `avg_bombs_defused_per_game` | `avg_endinghealth_per_round` <br /> `avg_endingarmor_per_round`  <br /> `avg_damageDealt_per_round` <br /> `avg_damageTaken_per_round` |
 
     To avoid introducing look-ahead bias to the model, the features are computed on a rolling average basis.
-    In other words, features for game 4 are computed by aggregating information seen from games 1-3; 
-    for game 5, information from games 1-4 were used, and so on.
+    
+    In other words, features for game 4 are computed by aggregating information seen from games 1-3; for game 5, information from games 1-4 were used, and so on.
 4. To account for team dynamics and also factor in the opposing team, these features are then pivoted such that each row represents the information of all 10 players in the game. This results in there being a total of 130 features per game (13 features x 10 players). Player and team names are masked with aliases, with player_1 being the player with the highest `avg_kills_per_game` for that team
 5. This dataset is then fed into a deep learning model using Tensorflow with 2 hidden layers. Dropout layers were also added to try to minimize overfitting of the model.
 
