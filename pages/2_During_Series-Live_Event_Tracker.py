@@ -29,13 +29,13 @@ def load_state():
 
 @st.cache_data  # 👈 Add the caching decorator
 def load_round2_events():
-    with open('../sample_data/2579089_events_round_2_sample.jsonl', 'r') as jsonl_file:
+    with open('./sample_data/2579089_events_round_2_sample.jsonl', 'r') as jsonl_file:
         round2_events = json.load(jsonl_file)
     return round2_events
 
 @st.cache_data  # 👈 Add the caching decorator
 def load_endofround_events():
-    with open('../sample_data/2579089_events_end_of_round_sample.jsonl', 'r') as jsonl_file:
+    with open('./sample_data/2579089_events_end_of_round_sample.jsonl', 'r') as jsonl_file:
         eor_events = json.load(jsonl_file)
     return eor_events
 
