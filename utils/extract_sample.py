@@ -44,6 +44,6 @@ r2_eid_list = r2_eid_preround_list + r2_eid_duringround_list
 
 full_events = load_events()
 
-extract_sample(full_events, r2_eid_list, '../2579089_events_round_2_sample.jsonl')
+extract_sample(full_events, r2_eid_list, '../sample_data/2579089_events_round_2_sample.jsonl')
 
-verify_extraction(r2_eid_list, '../2579089_events_round_2_sample.jsonl')
+verify_extraction(r2_eid_list, '../sample_data/2579089_events_round_2_sample.jsonl')
