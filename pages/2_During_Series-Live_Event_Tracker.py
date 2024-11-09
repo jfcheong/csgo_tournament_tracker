@@ -7,28 +7,19 @@ import pandas as pd
 import plotly.express as px  # interactive charts
 import streamlit as st
 import streamlit.components.v1 as components
-<<<<<<< HEAD
 from highcharts_excentis import Highchart
 import altair as alt
 import plotly.express as px  # interactive charts
 from io import BytesIO
 from urllib.request import urlopen
 from zipfile import ZipFile
-=======
->>>>>>> upstream/main
 
 from utils import utils
 
 st.set_page_config(page_title="CSGO Live Event Tracker", page_icon=":gun:",
     layout="wide", initial_sidebar_state="auto", menu_items=None)
 
-<<<<<<< HEAD
 # # Load events jsonl file
-=======
-utils.download_data()
-
-# Load events jsonl file
->>>>>>> upstream/main
 def load_state():
     with open('./data/CCT-Online-Finals-1/2578928_state.json', 'r') as json_file:
         state = json.load(json_file)
@@ -41,41 +32,10 @@ def load_state():
 #     return json_list
 
 @st.cache_data  # 👈 Add the caching decorator
-<<<<<<< HEAD
 def load_events():
     with open('./data/CCT-Online-Finals-1/2579089_events.jsonl', 'r') as jsonl_file:
         json_list = list(jsonl_file)
     return json_list
-=======
-def load_round2_events():
-    with open('./sample_data/2579089_events_round_2_sample.jsonl', 'r') as jsonl_file:
-        round2_events = json.load(jsonl_file)
-    return round2_events
-
-@st.cache_data  # 👈 Add the caching decorator
-def load_endofround_events():
-    with open('./sample_data/2579089_events_end_of_round_sample.jsonl', 'r') as jsonl_file:
-        eor_events = json.load(jsonl_file)
-    return eor_events
-
-# @st.cache_data  # 👈 Add the caching decorator
-# def load_state():
-#     url = "https://github.com/grid-esports/datajam-2023/raw/master/data_files/csgo.zip?download="
-#     with urlopen(url) as zipresp:
-#         zip_file = ZipFile(BytesIO(zipresp.read()))
-#     with zip_file.open("csgo/CCT-Online-Finals-1/2578928_state.json", "r") as json_file:
-#         state = json.load(json_file)
-#     return state
-#
-# @st.cache_data  # 👈 Add the caching decorator
-# def load_events():
-#     url = "https://github.com/grid-esports/datajam-2023/raw/master/data_files/csgo.zip?download="
-#     with urlopen(url) as zipresp:
-#         zip_file = ZipFile(BytesIO(zipresp.read()))
-#     with zip_file.open("csgo/CCT-Online-Finals-1/2579089_events.jsonl", "r") as json_file:
-#         json_list = list(json_file)
-#     return json_list
->>>>>>> upstream/main
 
 # @st.cache_data  # 👈 Add the caching decorator
 # def load_state():
