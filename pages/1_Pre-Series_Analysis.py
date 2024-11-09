@@ -1,15 +1,13 @@
-import streamlit as st
-import pandas as pd
-import streamlit as st
-import streamlit.components.v1 as components
-import plotly.graph_objects as go
 import json
-from datetime import date
-import pandas as pd
-import numpy as np
-from highcharts_excentis import Highchart
+
 import keras
 import numpy as np
+import pandas as pd
+import plotly.graph_objects as go
+import streamlit as st
+import streamlit.components.v1 as components
+from highcharts_excentis import Highchart
+
 from utils import utils
 from io import BytesIO
 from urllib.request import urlopen
@@ -17,6 +15,8 @@ from zipfile import ZipFile
 
 st.set_page_config(page_title="CSGO Pre-Series Analysis", page_icon=":gun:", 
     layout="wide", initial_sidebar_state="auto", menu_items=None)
+
+utils.download_data()
 
 st.title("Upcoming Series")
 
@@ -79,6 +79,7 @@ def get_match_score(state_dict):
 
     return match_score
 
+<<<<<<< HEAD
 @st.cache_data  # 👈 Add the caching decorator
 def load_events():
     url = "https://github.com/grid-esports/datajam-2023/raw/master/data_files/csgo.zip?download="
@@ -108,6 +109,36 @@ def load_events():
 
 finals_file,semifinals_file1,semifinals_file2 = load_events()[0],load_events()[1],load_events()[2]
 
+=======
+# @st.cache_data  # 👈 Add the caching decorator
+# def load_events():
+#     url = "https://github.com/grid-esports/datajam-2023/raw/master/data_files/csgo.zip?download="
+#     with urlopen(url) as zipresp:
+#         zip_file = ZipFile(BytesIO(zipresp.read()))
+#     files = zip_file.namelist()
+#     with zip_file.open("csgo/CCT-Online-Finals-1/2579089_state.json", "r") as json_file:
+#         finals_file = json.load(json_file)
+#     with zip_file.open("csgo/CCT-Online-Finals-1/2579048_state.json", "r") as json_file:
+#         semifinals_file1 = json.load(json_file)
+#     with zip_file.open("csgo/CCT-Online-Finals-1/2578928_state.json", "r") as json_file:
+#         semifinals_file2 = json.load(json_file)
+#     return [finals_file,semifinals_file1,semifinals_file2]
+
+
+#this opens the final files
+with open(f'./data/CCT-Online-Finals-1/2579089_state.json', 'r') as json_file:
+    finals_file = json.load(json_file)
+
+#this opens the semi-final files
+with open(f'./data/CCT-Online-Finals-1/2579048_state.json', 'r') as json_file:
+    semifinals_file1 = json.load(json_file)
+
+#this opens the second semi-final files
+with open(f'./data/CCT-Online-Finals-1/2578928_state.json', 'r') as json_file:
+    semifinals_file2 = json.load(json_file)
+ 
+# finals_file,semifinals_file1,semifinals_file2 = load_events()[0],load_events()[1],load_events()[2]
+>>>>>>> upstream/main
 match_date = finals_file["startedAt"].split("T")[0]
 st.subheader(f"Date of Match: {match_date}")
 match_result = get_match_result(finals_file, key='score')
@@ -165,7 +196,7 @@ fig.add_trace(go.Bar(
     x=[team1_wr],
     name=team1,
     orientation='h',
-    text=f"{team1_wr}%",
+    text=f"{team1_wr}",
     textposition="inside",
     hoverinfo='none',
     marker=dict(
@@ -178,7 +209,7 @@ fig.add_trace(go.Bar(
     x=[team2_wr],
     name=team2,
     orientation='h',
-    text=f"{team2_wr}%",
+    text=f"{team2_wr}",
     hoverinfo='none',
     marker=dict(
         color='#434348',

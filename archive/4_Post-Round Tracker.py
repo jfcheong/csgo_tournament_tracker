@@ -21,7 +21,7 @@ from copy import deepcopy
 
 @st.cache_data  # 👈 Add the caching decorator
 def load_data():
-    with open('../CCT-Online-Finals-1/2579089_events.jsonl', 'r') as jsonl_file:
+    with open('./data/CCT-Online-Finals-1/2579089_events.jsonl', 'r') as jsonl_file:
         json_list = list(jsonl_file)
     return json_list
 

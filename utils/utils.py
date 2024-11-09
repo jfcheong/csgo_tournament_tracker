@@ -1,8 +1,13 @@
-from copy import deepcopy
-import json
-import pandas as pd
-from pandas.api.types import is_float_dtype
+import os
 import re
+import shutil
+from copy import deepcopy
+from zipfile import ZipFile
+
+import pandas as pd
+import requests
+import streamlit as st
+from pandas.api.types import is_float_dtype
 
 IMG_URL = "https://raw.githubusercontent.com/jfcheong/csgo_tournament_tracker/main/assets/%s.png"
 
@@ -482,6 +487,36 @@ def combine_and_pivot(features_list):
     pivoted = pivoted.fillna(0)
 
     return pivoted
+
+@st.cache_resource
+def download_data():
+    if not os.path.exists(os.path.join('data', 'CCT-Online-Finals-1')):
+        url = 'https://github.com/grid-esports/datajam-2023/raw/master/data_files/csgo.zip'
+        filename = url.split('/')[-1]
+
+        # Download zip
+        print('Downloading zip')
+        response = requests.get(url)
+        with open(filename, 'wb') as output:
+            output.write(response.content)
+
+        # Create data folder
+        if not os.path.exists('data'):
+            os.mkdir('data') 
+
+        # Extract zip file
+        print('Extracting zip')
+        with ZipFile(filename) as zip_file:
+            zip_file.extractall('data')
+
+        # Move folder
+        shutil.move(os.path.join('data', 'csgo', 'CCT-Online-Finals-1'), os.path.join('data', 'CCT-Online-Finals-1'))
+        print('Data loaded')
+
+        # Delete zip file and folders
+        os.remove(filename)
+        shutil.rmtree(os.path.join('data', '__MACOSX'), ignore_errors=True)
+        shutil.rmtree(os.path.join('data', 'csgo'), ignore_errors=True)
 
 if __name__ == "__main__":
     print("Loaded utils")

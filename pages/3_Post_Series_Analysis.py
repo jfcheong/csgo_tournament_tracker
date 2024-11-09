@@ -1,12 +1,10 @@
-import streamlit as st
+import json
+
 import pandas as pd
-from highcharts_excentis import Highchart
 import streamlit as st
 import streamlit.components.v1 as components
-import json
-from datetime import date
-import pandas as pd
-import numpy as np
+from highcharts_excentis import Highchart
+
 from utils import utils
 from io import BytesIO
 from urllib.request import urlopen
@@ -16,9 +14,12 @@ import json
 st.set_page_config(page_title="CSGO Post Series Analysis", page_icon=":gun:", 
     layout="wide", initial_sidebar_state="auto", menu_items=None)
 
+utils.download_data()
+
 @st.cache_data  
 def load_data():
     # simultaneously tracks inventory value per round while iterating to last state for performance optimization
+<<<<<<< HEAD
     url = "https://github.com/grid-esports/datajam-2023/raw/master/data_files/csgo.zip?download="
     with urlopen(url) as zipresp:
         zip_file = ZipFile(BytesIO(zipresp.read()))
@@ -27,6 +28,15 @@ def load_data():
         json_list = list(json_file)
     # with open('./data/CCT-Online-Finals-1/2579089_events.jsonl', 'r') as jsonl_file:
     #     json_list = list(jsonl_file)
+=======
+    with open('./data/CCT-Online-Finals-1/2579089_events.jsonl', 'r') as jsonl_file:
+        json_list = list(jsonl_file)
+    # url = "https://github.com/grid-esports/datajam-2023/raw/master/data_files/csgo.zip?download="
+    # with urlopen(url) as zipresp:
+    #     zip_file = ZipFile(BytesIO(zipresp.read()))
+    # with zip_file.open("csgo/CCT-Online-Finals-1/2579089_events.jsonl", "r") as json_file:
+    #     json_list = list(json_file)
+>>>>>>> upstream/main
     economy_per_round = []
     for line_item in json_list:
         line_item = json.loads(line_item)

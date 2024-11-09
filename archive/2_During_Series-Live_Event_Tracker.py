@@ -17,11 +17,11 @@ from copy import deepcopy
 
 
 # Load events jsonl file
-with open('../CCT-Online-Finals-1/2579089_events.jsonl', 'r') as jsonl_file:
+with open('./data/CCT-Online-Finals-1/2579089_events.jsonl', 'r') as jsonl_file:
     json_list = list(jsonl_file)
 
 # Load state json file
-with open(f'../CCT-Online-Finals-1/2578928_state.json', 'r') as json_file:
+with open(f'./data/CCT-Online-Finals-1/2578928_state.json', 'r') as json_file:
     state = json.load(json_file)
 
 date = state["startedAt"].split("T")[0]
